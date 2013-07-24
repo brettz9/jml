@@ -137,11 +137,11 @@ var div = jml(
                     if (item === null) {
                         return 'null';
                     }
-                    if (item.nodeType === 1) { /* Must come before array check */
-                        return 'element';
-                    }
-                    if (typeof item.length === 'number') {
+                    if (Array.isArray(item)) {
                         return 'array';
+                    }
+                    if (item.nodeType === 1) {
+                        return 'element';
                     }
                     return 'object';
                 }
@@ -165,6 +165,7 @@ var div = jml(
                     if (i === 0) {
                         firstEl = elem;
                     }
+
                     elems[elems.length] = elem; /* Add to parent */
                     break;
                 case 'object': /* Non-DOM-element objects always indicate attribute-value pairs */
@@ -172,6 +173,9 @@ var div = jml(
                     for (p in atts) {
                         if (atts.hasOwnProperty(p)) {
                             switch(p) {
+                                case '$event': /* Could alternatively allow specific event names like 'change' or 'onchange'; could also alternatively allow object inside instead of array*/
+                                    _addEvent(elem, atts[p][0], atts[p][1], atts[p][2]); /* element, event name, handler, capturing */
+                                    break;
                                 case 'className': case 'class':
                                     elem.className = atts[p];
                                     break;
@@ -181,9 +185,6 @@ var div = jml(
                                 case 'selected' : case 'checked': case 'value' : case 'text':
                                     elem[p] = atts[p];
                                     break;
-                                case '$event': /* Could alternatively allow specific event names like 'change' or 'onchange'; could also alternatively allow object inside instead of array*/
-                                    _addEvent(elem, atts[p][0], atts[p][1], atts[p][2]); /* element, event name, handler, capturing */
-                                    break;
                                 // float not needed as for style.cssFloat (or style.styleFloat in IE)
                                 case 'htmlFor': case 'for':
                                     if (elStr === 'label') {
@@ -192,6 +193,10 @@ var div = jml(
                                     }
                                     /* Fall-through */
                                 default:
+                                    if (p.match(/^on/)) {
+                                        _addEvent(elem, p.slice(2), atts[p], false);
+                                        break;
+                                    }
                                     elem.setAttribute(p, atts[p]);
                                     break;
                             }
@@ -199,10 +204,10 @@ var div = jml(
                     }
                     break;
                 case 'element':
-                /*
-                1) Last element always the parent (put null if don't want parent and want to return array) unless only atts and children (no other elements)
-                2) Individual elements (DOM elements or sequences of string[/object/array]) get added to parent first-in, first-added
-                */
+                    /*
+                    1) Last element always the parent (put null if don't want parent and want to return array) unless only atts and children (no other elements)
+                    2) Individual elements (DOM elements or sequences of string[/object/array]) get added to parent first-in, first-added
+                    */
                     if (i === argc - 1 || (i === argc - 2 && argv[i+1] === null)) { /* parent */
                         for (k = 0, elsl = elems.length; k < elsl; k++) {
                             _appendElement(arg, elems[k]);
@@ -212,19 +217,17 @@ var div = jml(
                         elems[elems.length] = arg;
                     }
                     break;
-                case 'array': /* Arrays or arrays of arrays always indicate children */
+                case 'array': // Arrays or arrays of arrays indicate child nodes
                     child = arg;
-                    if (typeof child === 'object' && typeof child.length === 'number' && typeof child[0] === 'string') { /* Just one child (as an array), so no need for inner array */
-                        _appendElement(elem, jml.apply(null, child));
-                    }
-                    else {
-                        for (j = 0, cl = child.length; j < cl; j++) { /* Go through children array container to handle elements */
-                            if (typeof child[j] === 'object' && typeof child[j].length === 'number') { /* arrays representing child elements */
-                                _appendElement(elem, jml.apply(null, child[j]));
-                            }
-                            else { /* single DOM element children */
-                                _appendElement(elem, child[j]);
-                            }
+                    for (j = 0, cl = child.length; j < cl; j++) { // Go through children array container to handle elements
+                        if (typeof child[j] === 'string') {
+                            elem.appendChild(document.createTextNode(child[j]));
+                        }
+                        else if (Array.isArray(child[j])) { // Arrays representing child elements
+                            _appendElement(elem, jml.apply(null, child[j]));
+                        }
+                        else { // Single DOM element children
+                            _appendElement(elem, child[j]);
                         }
                     }
                     break;
