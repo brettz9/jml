@@ -175,7 +175,7 @@ var div = jml(
                             break;
                         case '?':
                             arg = argv[++i];
-                            val = argv[++i];
+                            procValue = val = argv[++i];
                             if (typeof val === 'object') {
                                 procValue = [];
                                 for (p in val) {
