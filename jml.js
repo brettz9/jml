@@ -3,6 +3,20 @@
 // Todo: Note to self: Integrate research from other jml notes
 // Todo: Add tests
 // Todo: Allow building of generic XML (pass configuration object)
+/*
+Todos inspired by JsonML: https://github.com/mckamey/jsonml/blob/master/jsonml-html.js
+if (tag.toLowerCase() === 'style' && document.createStyleSheet) {
+    // IE requires this interface for styles
+    return document.createStyleSheet();
+}
+boolean attributes?
+DOM attributes?
+duplicate attributes?
+expand with attr_map
+table appending
+IE object-param handling
+canHaveChildren necessary? (attempts to append to script and img)
+*/
 
 /*
 1) String element name (or array of 1-4)
@@ -207,6 +221,8 @@ var div = jml(
                             break;
                         default: // An element
                             elStr = arg;
+                            // Fix this to depend on XML/config, not availability of methods
+                            // Todo: Add JsonML code to handle name attribute
                             if (document.createElementNS) {
                                 elem = document.createElementNS(NS_HTML, elStr);
                             }
@@ -227,6 +243,8 @@ var div = jml(
                                 // Todo: {$: ['xhtml', 'div']} for prefixed elements
                                 // Todo: {'#': ['text1', ['span', ['inner text']], 'text2']} for transclusion-friendly fragments
                                 // Todo: Accept array for any attribute with first item as prefix and second as value
+                                // Todo: Add JsonML fix for style attribute and IE
+                                // Todo: Allow dataset shortcut
                                 case '$event': /* Could alternatively allow specific event names like 'change' or 'onchange'; could also alternatively allow object inside instead of array*/
                                     _addEvent(elem, atts[p][0], atts[p][1], atts[p][2]); // element, event name, handler, capturing
                                     break;
