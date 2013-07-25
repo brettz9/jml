@@ -233,6 +233,7 @@ var div = jml(
                                 case 'className': case 'class':
                                     elem.className = atts[p];
                                     break;
+                                // Todo: Disable this by default unless configuration explicitly allows (for security)
                                 case 'innerHTML':
                                     elem.innerHTML = atts[p];
                                     break;
