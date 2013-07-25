@@ -82,12 +82,20 @@ var trsArray = jml('tr', [
 ```javascript
 var div = jml(
     'div', [
-        $('DOMChildrenMustBeInArray')
+        $('#DOMChildrenMustBeInArray')[0]
     ],
-    $('anotherElementToAddToParent'),
-    $('yetAnotherSiblingToAddToParent'),
+    $('#anotherElementToAddToParent')[0],
+    $('#yetAnotherSiblingToAddToParent')[0],
     parent
 );
+```
+
+```javascript
+jml('div', [
+    'text0',
+    {'#': ['text1', ['span', ['inner text']], 'text2']}, // Add fragment anywhere within children
+    'text3'
+])
 ```
 
 Naming

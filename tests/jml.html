@@ -4,75 +4,127 @@
     <meta charset="utf-8" />
 	<title>JML test</title>
     <script src="../jml.js"></script>
+
+</head>
+<body>
+    <div style="display:none;">
+        <div id="DOMChildrenMustBeInArray">test1</div>
+        <div id="anotherElementToAddToParent">test2</div>
+        <div id="yetAnotherSiblingToAddToParent">test3</div>
+    </div>
 	<script>
-    var assert = {
-        isXML: function (item1, item2) {
-            document.write((new XMLSerializer().serializeToString(item1) === item2) + '<br />\n');
-        }
-    };
-    
-    assert.isXML(
+    // HELPERS
+    var $ = function (sel) {
+            return document.querySelectorAll(sel);
+        },
+        assert = {
+            matchesXMLStringWithinElement : function (element, item2) {
+                var docFrag = document.createDocumentFragment();
+                for (var i = 0; i < element.childNodes.length; i++) {
+                    docFrag.appendChild(element.childNodes[i].cloneNode(true));
+                }
+                this.matchesXMLString(docFrag, item2);
+            },
+            matchesXMLStringOnElement : function (element, item2) {
+                var lastInsert = element.childNodes[element.childNodes.length - 1];
+                this.matchesXMLString(lastInsert, item2);
+            },
+            matchesXMLString: function (item1, item2) {
+                if (!item2) { // For debugging
+                    alert(new XMLSerializer().serializeToString(item1))
+                }
+                document.write((new XMLSerializer().serializeToString(item1) === item2) + '<br />\n');
+            }
+        };
+
+    // BEGIN TESTS
+
+    assert.matchesXMLString(
         jml('input'),
         '<input xmlns="http://www.w3.org/1999/xhtml" />'
     );
-    
-    assert.isXML(
+
+    assert.matchesXMLString(
         jml('input', {type:'password'}),
         '<input xmlns="http://www.w3.org/1999/xhtml" type="password" />'
     );
 
-/*
-UNFINISHED
-
-    assert.isXML(
+    assert.matchesXMLString(
         jml('div', {'class': 'myClass'}, [
             ['p', ['Some inner text']],
             ['p', ['another child paragraph']]
-        ]
+        ]),
+        '<div xmlns="http://www.w3.org/1999/xhtml" class="myClass"><p>Some inner text</p><p>another child paragraph</p></div>'
     );
 
-var div = jml('div', [
-    ['p', ['no attributes on the div']]
-]);
+    assert.matchesXMLString(
+        jml('div', [
+            ['p', ['no attributes on the div']]
+        ]),
+        '<div xmlns="http://www.w3.org/1999/xhtml"><p>no attributes on the div</p></div>'
+    );
+
+    var simpleAttachToParent = jml('hr', document.body);
+
+    assert.matchesXMLStringOnElement(
+        document.body,
+        '<hr xmlns="http://www.w3.org/1999/xhtml" />'
+    );
+
+    var table = jml('table', document.body);
+    var firstTr = jml('tr', [
+            ['td', ['row 1 cell 1']],
+            ['td', ['row 1 cell 2']]
+        ],
+        'tr', {className: 'anotherRowSibling'}, [
+            ['td', ['row 2 cell 1']],
+            ['td', ['row 2 cell 2']]
+        ],
+        table
+    );
+
+    assert.matchesXMLStringWithinElement(
+        table,
+        '<tr xmlns="http://www.w3.org/1999/xhtml"><td>row 1 cell 1</td><td>row 1 cell 2</td></tr><tr xmlns="http://www.w3.org/1999/xhtml" class="anotherRowSibling"><td>row 2 cell 1</td><td>row 2 cell 2</td></tr>'
+    );
+
+    var table = jml('table', document.body); // Rebuild
+    var trsArray = jml('tr', [
+            ['td', ['row 1 cell 1']],
+            ['td', ['row 1 cell 2']]
+        ],
+        'tr', {className: 'anotherRowSibling'}, [
+            ['td', ['row 2 cell 1']],
+            ['td', ['row 2 cell 2']]
+        ],
+        table,
+        null
+    );
+
+    assert.matchesXMLStringWithinElement(
+        table,
+        new XMLSerializer().serializeToString(trsArray[0])+
+        new XMLSerializer().serializeToString(trsArray[1])
+        // '<tr xmlns="http://www.w3.org/1999/xhtml"><td>row 1 cell 1</td><td>row 1 cell 2</td></tr><tr xmlns="http://www.w3.org/1999/xhtml" class="anotherRowSibling"><td>row 2 cell 1</td><td>row 2 cell 2</td></tr>'
+    );
+
+    var parent = document.body;
+    var div = jml(
+        'div', [
+            $('#DOMChildrenMustBeInArray')[0]
+        ],
+        $('#anotherElementToAddToParent')[0],
+        $('#yetAnotherSiblingToAddToParent')[0],
+        parent
+    );
+    assert.matchesXMLString(
+        div,
+        '<div xmlns="http://www.w3.org/1999/xhtml"><div id="DOMChildrenMustBeInArray">test1</div></div>'
+        // '<div xmlns="http://www.w3.org/1999/xhtml"><div id="DOMChildrenMustBeInArray">test1</div></div><div id="anotherElementToAddToParent">test2</div><div id="yetAnotherSiblingToAddToParent">test3</div>'
+    );
 
 
-var simpleAttachToParent = jml('hr', document.body);
-
-
-var firstTr = jml('tr', [
-        ['td', ['row 1 cell 1']],
-        ['td', ['row 1 cell 2']]
-    ],
-    'tr', {className: 'anotherRowSibling'}, [
-        ['td', ['row 2 cell 1']],
-        ['td', ['row 2 cell 2']]
-    ],
-    table
-);
-
-
-var trsArray = jml('tr', [
-        ['td', ['row 1 cell 1']],
-        ['td', ['row 1 cell 2']]
-    ],
-    'tr', {className: 'anotherRowSibling'}, [
-        ['td', ['row 2 cell 1']],
-        ['td', ['row 2 cell 2']]
-    ],
-    table,
-    null
-);
-
-var div = jml(
-    'div', [
-        $('DOMChildrenMustBeInArray')
-    ],
-    $('anotherElementToAddToParent'),
-    $('yetAnotherSiblingToAddToParent'),
-    parent
-);
-    */
-    assert.isXML(
+    assert.matchesXMLString(
         jml('div', [
             'text0',
             {'#': ['text1', ['span', ['inner text']], 'text2']},
@@ -80,11 +132,7 @@ var div = jml(
         ]),
         '<div xmlns="http://www.w3.org/1999/xhtml">text0text1<span>inner text</span>text2text3</div>'
     );
-    
 
     </script>
-</head>
-<body>
-
 </body>
 </html>
