@@ -249,6 +249,7 @@ var div = jml(
                                     elem.setAttribute(p, atts[p]);
                                     break;
                                 default:
+                                    // Todo: Allow key as plain "on" with map (like $event?)
                                     if (p.match(/^on/)) {
                                         _addEvent(elem, p.slice(2), atts[p], false);
                                         break;
