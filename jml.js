@@ -91,15 +91,15 @@ var div = jml(
      * Need this function for IE since options weren't otherwise getting added
      * @private
      * @param {DOMElement} parent The parent to which to append the element
-     * @param {DOMElement} el The element to append to the parent
+     * @param {DOMNode} el The element or other node to append to the parent
      */
-    function _appendElement (parent, el) {
+    function _appendNode (parent, el) {
         if (parent.nodeName.toLowerCase() === 'select' && el.nodeName.toLowerCase() === 'option') {
             try {
                 parent.add(el, null);
             }
             catch (err) {
-                parent.add(el); /* IE */
+                parent.add(el); // IE
             }
         }
         else {
@@ -116,19 +116,29 @@ var div = jml(
      *                                                              capturing (W3C-browsers only); default is false; NOT IN USE
      */
     function _addEvent (el, type, handler, capturing) {
-        if (el.addEventListener) { /* W3C */
+        if (el.addEventListener) { // W3C
             el.addEventListener(type, handler, !!capturing);
         }
-        else if (el.attachEvent) { /* IE */
+        else if (el.attachEvent) { // IE
             el.attachEvent('on' + type, handler);
         }
-        else { /* OLDER BROWSERS (DOM0) */
+        else { // OLDER BROWSERS (DOM0)
             el['on' + type] = handler;
         }
     }
 
+    function _createSafeReference (type, prefix, arg) {
+        // For security reasons related to innerHTML, we ensure this string only contains potential entity characters
+        if (!arg.match(/^\w+$/)) {
+            throw 'Bad ' + type;
+        }
+        var elContainer = document.createElement('div');
+        elContainer.innerHTML = '&' + prefix + arg + ';';
+        return document.createTextNode(elContainer.innerHTML);
+    }
+
     function jml () {
-        var i, arg, p, textnode, k, elsl, j, cl, elem, elems = [], firstEl, elStr, atts, child = [], argc = arguments.length, argv = arguments, NS_HTML = 'http://www.w3.org/1999/xhtml',
+        var i, arg, procValue, p, val, elContainer, textnode, k, elsl, j, cl, elem, nodes = [], firstEl, elStr, atts, child = [], argc = arguments.length, argv = arguments, NS_HTML = 'http://www.w3.org/1999/xhtml',
             _getType = function (item) {
                 if (typeof item === 'string') {
                     return 'string';
@@ -149,32 +159,75 @@ var div = jml(
         for (i = 0; i < argc; i++) {
             arg = argv[i];
             switch (_getType(arg)) {
-                case 'null': /* null always indicates a place-holder (only needed for last argument if want array returned) */
+                case 'null': // null always indicates a place-holder (only needed for last argument if want array returned)
                     if (i === argc - 1) {
-                        return elems.length <= 1 ? elem : elems;
+                        return nodes.length <= 1 ? elem : nodes;
                     }
                     break;
-                case 'string': /* Strings always indicate elements */
-                    elStr = arg;
-                    if (document.createElementNS) {
-                        elem = document.createElementNS(NS_HTML, elStr);
+                case 'string': // Strings always indicate elements
+                    switch (arg) {
+                        case '!':
+                            nodes[nodes.length] = document.createComment(argv[++i]);
+                            break;
+                        case '?':
+                            arg = argv[++i];
+                            val = argv[++i];
+                            if (typeof val === 'object') {
+                                procValue = [];
+                                for (p in val) {
+                                    if (val.hasOwnProperty(p)) {
+                                        procValue.push(p + '=' + '"' + val[p].replace(/"/g, '\\"') + '"');
+                                    }
+                                }
+                                procValue = procValue.join(' ');
+                            }
+                            // Firefox allows instructions with ">" in this method, but not if placed directly!
+                            nodes[nodes.length] = document.createProcessingInstruction(arg, procValue);
+                            break;
+                        // Browsers don't support document.createEntityReference, so we just use this as a convenience
+                        case '&':
+                            nodes[nodes.length] = _createSafeReference('entity', '', argv[++i]);
+                            break;
+                        case '#': // // Decimal character reference - '#', ['01234'] // &#01234; // probably easier to use JavaScript Unicode escapes
+                            nodes[nodes.length] = _createSafeReference('decimal', arg, argv[++i]);
+                            break;
+                        case '#x': // Hex character reference - '#x', ['123a'] // &#x123a; // probably easier to use JavaScript Unicode escapes
+                            nodes[nodes.length] = _createSafeReference('hex', arg, argv[++i]);
+                            break;
+                        case '![':
+                            // '![', ['escaped <&> text'] // <![CDATA[escaped <&> text]]>
+                            // CDATA valid in XML only, so we'll just treat as text for mutual compatibility
+                            // Todo: config (or detection via some kind of document.documentType property?) of whether in XML
+                            // nodes[nodes.length] = document.createCDATASection(argv[++i]);
+                            nodes[nodes.length] = document.createTextNode(argv[++i]);
+                            break;
+                        default: // An element
+                            elStr = arg;
+                            if (document.createElementNS) {
+                                elem = document.createElementNS(NS_HTML, elStr);
+                            }
+                            else {
+                                elem = document.createElement(elStr);
+                            }
+                            if (i === 0) {
+                                firstEl = elem;
+                            }
+                            nodes[nodes.length] = elem; // Add to parent
+                            break;
                     }
-                    else {
-                        elem = document.createElement(elStr);
-                    }
-                    if (i === 0) {
-                        firstEl = elem;
-                    }
-
-                    elems[elems.length] = elem; /* Add to parent */
                     break;
-                case 'object': /* Non-DOM-element objects always indicate attribute-value pairs */
+                case 'object': // Non-DOM-element objects always indicate attribute-value pairs
                     atts = arg;
                     for (p in atts) {
                         if (atts.hasOwnProperty(p)) {
                             switch(p) {
+                                // Todo: add '$a' for array of ordered (prefix-)attribute-value arrays
+                                // Todo: Allow "xmlns" to accept prefix-value array or array of prefix-value arrays
+                                // Todo: {$: ['xhtml', 'div']} for prefixed elements
+                                // Todo: {'#': ['text1', ['span', ['inner text']], 'text2']} for transclusion-friendly fragments
+                                // Todo: Accept array for any attribute with first item as prefix and second as value
                                 case '$event': /* Could alternatively allow specific event names like 'change' or 'onchange'; could also alternatively allow object inside instead of array*/
-                                    _addEvent(elem, atts[p][0], atts[p][1], atts[p][2]); /* element, event name, handler, capturing */
+                                    _addEvent(elem, atts[p][0], atts[p][1], atts[p][2]); // element, event name, handler, capturing
                                     break;
                                 case 'className': case 'class':
                                     elem.className = atts[p];
@@ -191,7 +244,8 @@ var div = jml(
                                         elem.htmlFor = atts[p];
                                         break;
                                     }
-                                    /* Fall-through */
+                                    elem.setAttribute(p, atts[p]);
+                                    break;
                                 default:
                                     if (p.match(/^on/)) {
                                         _addEvent(elem, p.slice(2), atts[p], false);
@@ -208,13 +262,13 @@ var div = jml(
                     1) Last element always the parent (put null if don't want parent and want to return array) unless only atts and children (no other elements)
                     2) Individual elements (DOM elements or sequences of string[/object/array]) get added to parent first-in, first-added
                     */
-                    if (i === argc - 1 || (i === argc - 2 && argv[i+1] === null)) { /* parent */
-                        for (k = 0, elsl = elems.length; k < elsl; k++) {
-                            _appendElement(arg, elems[k]);
+                    if (i === argc - 1 || (i === argc - 2 && argv[i+1] === null)) { // parent
+                        for (k = 0, elsl = nodes.length; k < elsl; k++) {
+                            _appendNode(arg, nodes[k]);
                         }
                     }
                     else {
-                        elems[elems.length] = arg;
+                        nodes[nodes.length] = arg;
                     }
                     break;
                 case 'array': // Arrays or arrays of arrays indicate child nodes
@@ -224,10 +278,10 @@ var div = jml(
                             elem.appendChild(document.createTextNode(child[j]));
                         }
                         else if (Array.isArray(child[j])) { // Arrays representing child elements
-                            _appendElement(elem, jml.apply(null, child[j]));
+                            _appendNode(elem, jml.apply(null, child[j]));
                         }
                         else { // Single DOM element children
-                            _appendElement(elem, child[j]);
+                            _appendNode(elem, child[j]);
                         }
                     }
                     break;
