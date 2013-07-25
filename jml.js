@@ -44,44 +44,48 @@ var input = jml('input');
 // 2)
 var input = jml('input', {type:'password'});
 // 3)
-var div = jml('div', {c:'myClass'},
-            ['p', {ih:'Some inner HTML'}],
-            ['p', {ih:'another child paragraph'}]);
+var div = jml('div', {'class': 'myClass'}, [
+    ['p', ['Some inner text']],
+    ['p', ['another child paragraph']]
+]);
 // 4)
-var div = jml('div', {c:'myClass'},
-            [ // Same as above, but more conceptually clear
-                ['p', {ih:'Some inner HTML'}],
-                ['p', {ih:'another child paragraph'}]
-            ]);
+var div = jml('div', [
+    ['p', ['no attributes on the div']]
+]);
 // 5)
-var div = jml('div',
-                ['p', {ih:'no attributes on the div'}]);
-// 6)
 var simpleAttachToParent = jml('hr', document.body);
+// 6)
+var firstTr = jml('tr', [
+        ['td', ['row 1 cell 1']],
+        ['td', ['row 1 cell 2']]
+    ],
+    'tr', {className: 'anotherRowSibling'}, [
+        ['td', ['row 2 cell 1']],
+        ['td', ['row 2 cell 2']]
+    ],
+    table
+);
 // 7)
-var firstTr = jml('tr',
-                ['td', {ih:'row 1 cell 1'}],
-                ['td', {ih:'row 1 cell 2'}],
-            'tr', {className:'anotherSibling'}
-                ['td', {ih:'row 2 cell 1'}],
-                ['td', {ih:'row 2 cell 2'}],
-            table);
+var trsArray = jml('tr', [
+        ['td', ['row 1 cell 1']],
+        ['td', ['row 1 cell 2']]
+    ],
+    'tr', {className: 'anotherRowSibling'}, [
+        ['td', ['row 2 cell 1']],
+        ['td', ['row 2 cell 2']]
+    ],
+    table,
+    null
+);
 // 8)
-var trsArray = jml('tr',
-                ['td', {ih:'row 1 cell 1'}],
-                ['td', {ih:'row 1 cell 2'}],
-            'tr', {className:'anotherSibling'}
-                ['td', {ih:'row 2 cell 1'}],
-                ['td', {ih:'row 2 cell 2'}],
-            table, null);
-// 9)
 
 var div = jml(
-            'div',
-                [$('DOMChildrenMustBeInArray')],
-            $('anotherElementToAddToParent'),
-            $('yetAnotherSiblingToAddToParent'),
-        parent
+    'div', [
+        $('DOMChildrenMustBeInArray')
+    ],
+    $('anotherElementToAddToParent'),
+    $('yetAnotherSiblingToAddToParent'),
+    parent
 );
 */
 
