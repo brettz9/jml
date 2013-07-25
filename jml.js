@@ -97,7 +97,7 @@ canHaveChildren necessary? (attempts to append to script and img)
      * @returns {DOMElement} The newly created (and possibly already appended) element or array of elements
      */
     function jml () {
-        var i, arg, procValue, p, val, elContainer, textnode, k, elsl, j, cl, elem, nodes = [], elStr, atts, child = [], argc = arguments.length, argv = arguments, NS_HTML = 'http://www.w3.org/1999/xhtml',
+        var i, arg, procValue, p, val, elContainer, textnode, k, elsl, j, cl, elem = document.createDocumentFragment(), nodes = [], elStr, atts, child = [], argc = arguments.length, argv = arguments, NS_HTML = 'http://www.w3.org/1999/xhtml',
             _getType = function (item) {
                 if (typeof item === 'string') {
                     return 'string';
@@ -181,14 +181,16 @@ canHaveChildren necessary? (attempts to append to script and img)
                             switch(p) {
                                 /*
                                 Todos:
+                                0. Allow dataset shortcut
                                 0. add '$a' for array of ordered (prefix-)attribute-value arrays
                                 0. Allow "xmlns" to accept prefix-value array or array of prefix-value arrays
                                 0. {$: ['xhtml', 'div']} for prefixed elements
-                                0. {'#': ['text1', ['span', ['inner text']], 'text2']} for transclusion-friendly fragments
                                 0. Accept array for any attribute with first item as prefix and second as value
                                 0. Add JsonML fix for style attribute and IE
-                                0. Allow dataset shortcut
                                 */
+                                case '#':
+                                    nodes[nodes.length] = jml.apply(null, [atts[p]]); // Nest within array to avoid confusion with elements
+                                    break;
                                 case '$event': /* Could alternatively allow specific event names like 'change' or 'onchange'; could also alternatively allow object inside instead of array*/
                                     _addEvent(elem, atts[p][0], atts[p][1], atts[p][2]); // element, event name, handler, capturing
                                     break;
@@ -245,6 +247,9 @@ canHaveChildren necessary? (attempts to append to script and img)
                         else if (Array.isArray(child[j])) { // Arrays representing child elements
                             _appendNode(elem, jml.apply(null, child[j]));
                         }
+                        else if (child[j]['#']) {
+                            _appendNode(elem, jml.apply(null, [child[j]['#']]));
+                        }
                         else { // Single DOM element children
                             _appendNode(elem, child[j]);
                         }
@@ -252,7 +257,7 @@ canHaveChildren necessary? (attempts to append to script and img)
                     break;
             }
         }
-        return nodes[0];
+        return nodes[0] || elem;
     }
 
     // EXPORTS

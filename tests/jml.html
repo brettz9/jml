@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+	<title>JML test</title>
+    <script src="../jml.js"></script>
+	<script>
+    var assert = {
+        isXML: function (item1, item2) {
+            document.write((new XMLSerializer().serializeToString(item1) === item2) + '<br />\n');
+        }
+    };
+    
+    assert.isXML(
+        jml('input'),
+        '<input xmlns="http://www.w3.org/1999/xhtml" />'
+    );
+    
+    assert.isXML(
+        jml('input', {type:'password'}),
+        '<input xmlns="http://www.w3.org/1999/xhtml" type="password" />'
+    );
+
+/*
+UNFINISHED
+
+    assert.isXML(
+        jml('div', {'class': 'myClass'}, [
+            ['p', ['Some inner text']],
+            ['p', ['another child paragraph']]
+        ]
+    );
+
+var div = jml('div', [
+    ['p', ['no attributes on the div']]
+]);
+
+
+var simpleAttachToParent = jml('hr', document.body);
+
+
+var firstTr = jml('tr', [
+        ['td', ['row 1 cell 1']],
+        ['td', ['row 1 cell 2']]
+    ],
+    'tr', {className: 'anotherRowSibling'}, [
+        ['td', ['row 2 cell 1']],
+        ['td', ['row 2 cell 2']]
+    ],
+    table
+);
+
+
+var trsArray = jml('tr', [
+        ['td', ['row 1 cell 1']],
+        ['td', ['row 1 cell 2']]
+    ],
+    'tr', {className: 'anotherRowSibling'}, [
+        ['td', ['row 2 cell 1']],
+        ['td', ['row 2 cell 2']]
+    ],
+    table,
+    null
+);
+
+var div = jml(
+    'div', [
+        $('DOMChildrenMustBeInArray')
+    ],
+    $('anotherElementToAddToParent'),
+    $('yetAnotherSiblingToAddToParent'),
+    parent
+);
+    */
+    assert.isXML(
+        jml('div', [
+            'text0',
+            {'#': ['text1', ['span', ['inner text']], 'text2']},
+            'text3'
+        ]),
+        '<div xmlns="http://www.w3.org/1999/xhtml">text0text1<span>inner text</span>text2text3</div>'
+    );
+    
+
+    </script>
+</head>
+<body>
+
+</body>
+</html>
