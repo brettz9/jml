@@ -157,8 +157,12 @@ canHaveChildren necessary? (attempts to append to script and img)
                             // '![', ['escaped <&> text'] // <![CDATA[escaped <&> text]]>
                             // CDATA valid in XML only, so we'll just treat as text for mutual compatibility
                             // Todo: config (or detection via some kind of document.documentType property?) of whether in XML
-                            // nodes[nodes.length] = document.createCDATASection(argv[++i]);
-                            nodes[nodes.length] = document.createTextNode(argv[++i]);
+                            try {
+                                nodes[nodes.length] = document.createCDATASection(argv[++i]);
+                            }
+                            catch (e) {
+                                nodes[nodes.length] = document.createTextNode(argv[++i]);
+                            }
                             break;
                         default: // An element
                             elStr = arg;
