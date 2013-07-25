@@ -1,9 +1,13 @@
 /*globals exports*/
 (function () {
-// Todo: Note to self: Integrate research from other jml notes
-// Todo: Add tests
-// Todo: Allow building of generic XML (pass configuration object)
 /*
+Todos:
+0. Note to self: Integrate research from other jml notes
+0. Add tests, including cross-browser checks
+0. Allow building of generic XML (pass configuration object)
+0. Allow array as single first argument
+0. Allow building content internally as a string
+
 Todos inspired by JsonML: https://github.com/mckamey/jsonml/blob/master/jsonml-html.js
 if (tag.toLowerCase() === 'style' && document.createStyleSheet) {
     // IE requires this interface for styles
@@ -16,91 +20,6 @@ expand with attr_map
 table appending
 IE object-param handling
 canHaveChildren necessary? (attempts to append to script and img)
-*/
-
-/*
-1) String element name (or array of 1-4)
-2) Optional object with attributes
-3) Optional array of text nodes and child elements
-4) Optionally repeat for siblings
-*/
-
-/**
- * Creates an XHTML or HTML element (XHTML is preferred, but only in browsers that support);
- * Any element after element can be omitted, and any subsequent type or types added afterwards
- * @param {String} el The element to create (by lower-case name)
- * @param {Object} [atts] Attributes to add with the key as the attribute name and value as the
- *                                               attribute value; important for IE where the input element's type cannot
- *                                               be added later after already added to the page
- * @param {DOMElement[]} [children] The optional children of this element (but raw DOM elements
- *                                                                      required to be specified within arrays since
- *                                                                      could not otherwise be distinguished from siblings being added)
- * @param {DOMElement} [parent] The optional parent to which to attach the element (always the last
- *                                                                  unless followed by null, in which case it is the second-to-last)
- * @param {null} [returning] Can use null to indicate an array of elements should be returned
- * @returns {DOMElement} The newly created (and possibly already appended) element or array of elements
- */
-/*
-RULES
-    1) Last element always the parent (put null if don't want but want to return) unless only atts and children (no other elements)
-    2) Individual elements (DOM elements or sequences of string[/object/array]) get added to parent first-in, first-added
-    3) Arrays or arrays of arrays always indicate children
-    4) Strings always indicate elements
-    5) Non-DOM-element objects always indicate attribute-value pairs
-    6) null always indicates a place-holder (only needed in place of parent for last argument if want array returned)
-    7) First item must be an element
-    8) Always returns first created element, unless null as last argument, in which case, it returns an array of all added elements
-*/
-/*
-// EXAMPLES
-// 1)
-var input = jml('input');
-// 2)
-var input = jml('input', {type:'password'});
-// 3)
-var div = jml('div', {'class': 'myClass'}, [
-    ['p', ['Some inner text']],
-    ['p', ['another child paragraph']]
-]);
-// 4)
-var div = jml('div', [
-    ['p', ['no attributes on the div']]
-]);
-// 5)
-var simpleAttachToParent = jml('hr', document.body);
-// 6)
-var firstTr = jml('tr', [
-        ['td', ['row 1 cell 1']],
-        ['td', ['row 1 cell 2']]
-    ],
-    'tr', {className: 'anotherRowSibling'}, [
-        ['td', ['row 2 cell 1']],
-        ['td', ['row 2 cell 2']]
-    ],
-    table
-);
-// 7)
-var trsArray = jml('tr', [
-        ['td', ['row 1 cell 1']],
-        ['td', ['row 1 cell 2']]
-    ],
-    'tr', {className: 'anotherRowSibling'}, [
-        ['td', ['row 2 cell 1']],
-        ['td', ['row 2 cell 2']]
-    ],
-    table,
-    null
-);
-// 8)
-
-var div = jml(
-    'div', [
-        $('DOMChildrenMustBeInArray')
-    ],
-    $('anotherElementToAddToParent'),
-    $('yetAnotherSiblingToAddToParent'),
-    parent
-);
 */
 
     'use strict';
@@ -145,6 +64,13 @@ var div = jml(
         }
     }
 
+    /**
+    * Creates a text node of the result of resolving an entity or character reference
+    * @param {'entity'|'decimal'|'hexadecimal'} type Type of reference
+    * @param {String} prefix Text to prefix immediately after the "&"
+    * @param {String} arg The body of the reference
+    * @returns {Text} The text node of the resolved reference
+    */
     function _createSafeReference (type, prefix, arg) {
         // For security reasons related to innerHTML, we ensure this string only contains potential entity characters
         if (!arg.match(/^\w+$/)) {
@@ -155,6 +81,21 @@ var div = jml(
         return document.createTextNode(elContainer.innerHTML);
     }
 
+    /**
+     * Creates an XHTML or HTML element (XHTML is preferred, but only in browsers that support);
+     * Any element after element can be omitted, and any subsequent type or types added afterwards
+     * @param {String} el The element to create (by lower-case name)
+     * @param {Object} [atts] Attributes to add with the key as the attribute name and value as the
+     *                                               attribute value; important for IE where the input element's type cannot
+     *                                               be added later after already added to the page
+     * @param {DOMElement[]} [children] The optional children of this element (but raw DOM elements
+     *                                                                      required to be specified within arrays since
+     *                                                                      could not otherwise be distinguished from siblings being added)
+     * @param {DOMElement} [parent] The optional parent to which to attach the element (always the last
+     *                                                                  unless followed by null, in which case it is the second-to-last)
+     * @param {null} [returning] Can use null to indicate an array of elements should be returned
+     * @returns {DOMElement} The newly created (and possibly already appended) element or array of elements
+     */
     function jml () {
         var i, arg, procValue, p, val, elContainer, textnode, k, elsl, j, cl, elem, nodes = [], elStr, atts, child = [], argc = arguments.length, argv = arguments, NS_HTML = 'http://www.w3.org/1999/xhtml',
             _getType = function (item) {
@@ -210,7 +151,7 @@ var div = jml(
                             nodes[nodes.length] = _createSafeReference('decimal', arg, argv[++i]);
                             break;
                         case '#x': // Hex character reference - '#x', ['123a'] // &#x123a; // probably easier to use JavaScript Unicode escapes
-                            nodes[nodes.length] = _createSafeReference('hex', arg, argv[++i]);
+                            nodes[nodes.length] = _createSafeReference('hexadecimal', arg, argv[++i]);
                             break;
                         case '![':
                             // '![', ['escaped <&> text'] // <![CDATA[escaped <&> text]]>
@@ -238,13 +179,16 @@ var div = jml(
                     for (p in atts) {
                         if (atts.hasOwnProperty(p)) {
                             switch(p) {
-                                // Todo: add '$a' for array of ordered (prefix-)attribute-value arrays
-                                // Todo: Allow "xmlns" to accept prefix-value array or array of prefix-value arrays
-                                // Todo: {$: ['xhtml', 'div']} for prefixed elements
-                                // Todo: {'#': ['text1', ['span', ['inner text']], 'text2']} for transclusion-friendly fragments
-                                // Todo: Accept array for any attribute with first item as prefix and second as value
-                                // Todo: Add JsonML fix for style attribute and IE
-                                // Todo: Allow dataset shortcut
+                                /*
+                                Todos:
+                                0. add '$a' for array of ordered (prefix-)attribute-value arrays
+                                0. Allow "xmlns" to accept prefix-value array or array of prefix-value arrays
+                                0. {$: ['xhtml', 'div']} for prefixed elements
+                                0. {'#': ['text1', ['span', ['inner text']], 'text2']} for transclusion-friendly fragments
+                                0. Accept array for any attribute with first item as prefix and second as value
+                                0. Add JsonML fix for style attribute and IE
+                                0. Allow dataset shortcut
+                                */
                                 case '$event': /* Could alternatively allow specific event names like 'change' or 'onchange'; could also alternatively allow object inside instead of array*/
                                     _addEvent(elem, atts[p][0], atts[p][1], atts[p][2]); // element, event name, handler, capturing
                                     break;
