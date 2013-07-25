@@ -142,7 +142,7 @@ var div = jml(
     }
 
     function jml () {
-        var i, arg, procValue, p, val, elContainer, textnode, k, elsl, j, cl, elem, nodes = [], firstEl, elStr, atts, child = [], argc = arguments.length, argv = arguments, NS_HTML = 'http://www.w3.org/1999/xhtml',
+        var i, arg, procValue, p, val, elContainer, textnode, k, elsl, j, cl, elem, nodes = [], elStr, atts, child = [], argc = arguments.length, argv = arguments, NS_HTML = 'http://www.w3.org/1999/xhtml',
             _getType = function (item) {
                 if (typeof item === 'string') {
                     return 'string';
@@ -165,7 +165,7 @@ var div = jml(
             switch (_getType(arg)) {
                 case 'null': // null always indicates a place-holder (only needed for last argument if want array returned)
                     if (i === argc - 1) {
-                        return nodes.length <= 1 ? elem : nodes;
+                        return nodes.length <= 1 ? nodes[0] : nodes;
                     }
                     break;
                 case 'string': // Strings always indicate elements
@@ -212,9 +212,6 @@ var div = jml(
                             }
                             else {
                                 elem = document.createElement(elStr);
-                            }
-                            if (i === 0) {
-                                firstEl = elem;
                             }
                             nodes[nodes.length] = elem; // Add to parent
                             break;
@@ -291,7 +288,7 @@ var div = jml(
                     break;
             }
         }
-        return firstEl;
+        return nodes[0];
     }
 
     // EXPORTS
