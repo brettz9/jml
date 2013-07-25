@@ -123,7 +123,7 @@ canHaveChildren necessary? (attempts to append to script and img)
                         return nodes.length <= 1 ? nodes[0] : nodes;
                     }
                     break;
-                case 'string': // Strings always indicate elements
+                case 'string': // Strings indicate elements
                     switch (arg) {
                         case '!':
                             nodes[nodes.length] = document.createComment(argv[++i]);
@@ -174,7 +174,7 @@ canHaveChildren necessary? (attempts to append to script and img)
                             break;
                     }
                     break;
-                case 'object': // Non-DOM-element objects always indicate attribute-value pairs
+                case 'object': // Non-DOM-element objects indicate attribute-value pairs
                     atts = arg;
                     for (p in atts) {
                         if (atts.hasOwnProperty(p)) {
