@@ -5,6 +5,7 @@ Todos:
 0. Note to self: Integrate research from other jml notes
 0. Allow building of generic XML (pass configuration object)
 0. Allow array as single first argument
+0. Settle on whether need to use null as last argument to return array (or fragment) or other way to allow appending?
 0. Allow building content internally as a string (though allowing DOM methods, etc.?)
 
 Todos inspired by JsonML: https://github.com/mckamey/jsonml/blob/master/jsonml-html.js
@@ -76,6 +77,7 @@ canHaveChildren necessary? (attempts to append to script and img)
             throw 'Bad ' + type;
         }
         var elContainer = document.createElement('div');
+        // Todo: No workaround for XML?
         elContainer.innerHTML = '&' + prefix + arg + ';';
         return document.createTextNode(elContainer.innerHTML);
     }
@@ -194,17 +196,18 @@ canHaveChildren necessary? (attempts to append to script and img)
                             switch(p) {
                                 /*
                                 Todos:
-                                0. Allow "xmlns" to accept prefix-value array or array of prefix-value arrays
-                                0. {$: ['xhtml', 'div']} for prefixed elements
-                                0. Support style object? / Add JsonML fix for style attribute and IE; if so, handle style.cssFloat (or style.styleFloat in IE)
-                                0. add '$a' for array of ordered (prefix-)attribute-value arrays
                                 0. Accept array for any attribute with first item as prefix and second as value?
+                                0. Allow "xmlns" to accept prefix-value array or array of prefix-value arrays?
+                                0. add '$a' for array of ordered (prefix-)attribute-value arrays
+                                0. {$: ['xhtml', 'div']} for prefixed elements
+
+                                0. Support style object? / Add JsonML fix for style attribute and IE; if so, handle style.cssFloat (or style.styleFloat in IE)
                                 0. JSON mode to prevent event addition?
                                 */
-                                case '#':
+                                case '#': // Document fragment
                                     nodes[nodes.length] = jml.apply(null, [attVal]); // Nest within array to avoid confusion with elements
                                     break;
-                                case '$on':
+                                case '$on': // Events
                                     for (p2 in attVal) {
                                         if (attVal.hasOwnProperty(p2)) {
                                             val = attVal[p2];
