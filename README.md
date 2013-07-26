@@ -98,6 +98,38 @@ jml('div', [
 ])
 ```
 
+```javascript
+var input = jml('input', {$on: {
+    click: [function () {
+        alert('worked1');
+    }, true] // Capturing
+}});
+```
+```javascript
+var input2 = jml('input', {
+    style: 'position:absolute; left: -1000px;',
+    $on: {
+        click: function () {
+            alert('worked2');
+        },
+        focus: function () {
+            alert('worked3');
+        }
+    }
+}, document.body);
+```
+
+```javascript
+var div = jml('div', [
+    ['!', 'a comment'],
+    ['?', 'customPI', 'a processing instruction'],
+    ['&', 'copy'],
+    ['#', '1234'],
+    ['#x', 'ab3'],
+    ['![', '&test <CDATA> content']
+]);
+```
+
 Naming
 ======
 
