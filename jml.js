@@ -3,10 +3,9 @@
 /*
 Todos:
 0. Note to self: Integrate research from other jml notes
-0. Add tests, including cross-browser checks
 0. Allow building of generic XML (pass configuration object)
 0. Allow array as single first argument
-0. Allow building content internally as a string
+0. Allow building content internally as a string (though allowing DOM methods, etc.?)
 
 Todos inspired by JsonML: https://github.com/mckamey/jsonml/blob/master/jsonml-html.js
 if (tag.toLowerCase() === 'style' && document.createStyleSheet) {
@@ -170,7 +169,7 @@ canHaveChildren necessary? (attempts to append to script and img)
                                 nodes[nodes.length] = document.createCDATASection(argv[++i]);
                             }
                             catch (e) {
-                                nodes[nodes.length] = document.createTextNode(argv[++i]);
+                                nodes[nodes.length] = document.createTextNode(argv[i]); // i already incremented
                             }
                             break;
                         default: // An element
@@ -195,12 +194,11 @@ canHaveChildren necessary? (attempts to append to script and img)
                             switch(p) {
                                 /*
                                 Todos:
-                                0. Support style object?
-                                0. add '$a' for array of ordered (prefix-)attribute-value arrays
                                 0. Allow "xmlns" to accept prefix-value array or array of prefix-value arrays
                                 0. {$: ['xhtml', 'div']} for prefixed elements
+                                0. Support style object? / Add JsonML fix for style attribute and IE
+                                0. add '$a' for array of ordered (prefix-)attribute-value arrays
                                 0. Accept array for any attribute with first item as prefix and second as value?
-                                0. Add JsonML fix for style attribute and IE
                                 0. JSON mode to prevent event addition?
                                 */
                                 case '#':

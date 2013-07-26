@@ -13,6 +13,13 @@
         <div id="yetAnotherSiblingToAddToParent">test3</div>
     </div>
 	<script>
+    /*
+    Todos:
+    0. Add test cases for properties: innerHTML, selected, checked, value, htmlFor, for, on*
+    0. Confirm working cross-browser
+    0. When CDATA XML-check added, add check for CDATA section in XML
+    */
+
     // HELPERS
     var $ = function (sel) {
             return document.querySelectorAll(sel);
@@ -164,6 +171,19 @@
     assert.matches(str, 'worked2');
     input2.focus();
     assert.matches(str, 'worked3');
+
+    assert.matchesXMLString(
+        jml('div', [
+            ['!', 'a comment'],
+            ['?', 'customPI', 'a processing instruction'],
+            ['&', 'copy'],
+            ['#', '1234'],
+            ['#x', 'ab3'],
+            ['![', '&test <CDATA> content']
+        ]),
+        '<div xmlns="http://www.w3.org/1999/xhtml"><!--a comment--' +
+        '><'+ '?customPI a processing instruction?>\u00A9\u04D2\u0AB3&amp;test &lt;CDATA&gt; content</div>'
+    );
 
     </script>
 </body>
