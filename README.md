@@ -20,9 +20,9 @@ Rules (detailed)
 3. Arrays indicate children (containing nodes, text (to become text nodes) or arrays encapsulating another JML element structure)
 4. Strings indicate elements unless they use special characters, in which case
 5. Non-DOM-element objects indicate attribute-value pairs
-6. null always indicates a place-holder (only needed in place of parent for last argument if want array returned)
+6. null always indicates a place-holder (only needed in place of parent for last argument if want fragment returned)
 7. First item must be an element name (to create an element structure)
-8. Always returns first created element, unless null as last argument, in which case, it returns an array of all added elements
+8. Always returns first created element, unless null as last argument, in which case, it returns a fragment of all added elements
 
 Examples
 ========
@@ -90,7 +90,7 @@ var firstTr = jml('tr', [
 Returning element siblings as an array (API unstable)...
 
 ```javascript
-var trsArray = jml('tr', [
+var trsFragment = jml('tr', [
         ['td', ['row 1 cell 1']],
         ['td', ['row 1 cell 2']]
     ],

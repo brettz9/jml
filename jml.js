@@ -130,7 +130,10 @@ canHaveChildren necessary? (attempts to append to script and img)
             switch (_getType(arg)) {
                 case 'null': // null always indicates a place-holder (only needed for last argument if want array returned)
                     if (i === argc - 1) {
-                        return nodes.length <= 1 ? nodes[0] : nodes;
+                        return nodes.length <= 1 ? nodes[0] : nodes.reduce(function (frag, node) {
+                            frag.appendChild(node);
+                            return frag;
+                        }, document.createDocumentFragment()); // nodes;
                     }
                     break;
                 case 'string': // Strings indicate elements
@@ -226,6 +229,11 @@ canHaveChildren necessary? (attempts to append to script and img)
                                 0. Support style object? / Add JsonML fix for style attribute and IE; if so, handle style.cssFloat (or style.styleFloat in IE)
                                 0. JSON mode to prevent event addition?
                                 */
+                                /* unfinished:
+                                case '$':
+                                    nodes[nodes.length] = elem = document.createElementNS(attVal[0], attVal[1]);
+                                    break;
+                                */
                                 case '#': // Document fragment
                                     nodes[nodes.length] = jml.apply(null, [attVal]); // Nest within array to avoid confusion with elements
                                     break;
@@ -301,7 +309,7 @@ canHaveChildren necessary? (attempts to append to script and img)
                         else if (Array.isArray(child[j])) { // Arrays representing child elements
                             _appendNode(elem, jml.apply(null, child[j]));
                         }
-                        else if (child[j]['#']) {
+                        else if (child[j]['#']) { // Fragment
                             _appendNode(elem, jml.apply(null, [child[j]['#']]));
                         }
                         else { // Single DOM element children

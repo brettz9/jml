@@ -71,7 +71,7 @@ assert.matchesXMLStringWithinElement(
 );
 
 var table = jml('table', {style: 'position:absolute; left: -1000px;',}, document.body); // Rebuild
-var trsArray = jml('tr', [
+var trsFragment = jml('tr', [
         ['td', ['row 1 cell 1']],
         ['td', ['row 1 cell 2']]
     ],
@@ -79,15 +79,13 @@ var trsArray = jml('tr', [
         ['td', ['row 2 cell 1']],
         ['td', ['row 2 cell 2']]
     ],
-    table,
     null
 );
 
-assert.matchesXMLStringWithinElement(
-    table,
-    new XMLSerializer().serializeToString(trsArray[0])+
-    new XMLSerializer().serializeToString(trsArray[1])
-    // '<tr xmlns="http://www.w3.org/1999/xhtml"><td>row 1 cell 1</td><td>row 1 cell 2</td></tr><tr xmlns="http://www.w3.org/1999/xhtml" class="anotherRowSibling"><td>row 2 cell 1</td><td>row 2 cell 2</td></tr>'
+assert.matches(
+    new XMLSerializer().serializeToString(trsFragment.childNodes[0]) +
+    new XMLSerializer().serializeToString(trsFragment.childNodes[1]),
+    '<tr xmlns="http://www.w3.org/1999/xhtml"><td>row 1 cell 1</td><td>row 1 cell 2</td></tr><tr xmlns="http://www.w3.org/1999/xhtml" class="anotherRowSibling"><td>row 2 cell 1</td><td>row 2 cell 2</td></tr>'
 );
 
 var parent = document.body;
@@ -184,4 +182,51 @@ assert.matchesXMLString(
 assert.matches(
     jml('abc', {xmlns: {'prefix1': 'def', 'prefix2': 'ghi', '': 'newdefault'}}).namespaceURI,
     'newdefault'
+);
+/*
+// lookupNamespaceURI(prefix) is not working in Mozilla, so we test this way
+assert.matches(
+    jml('abc', {xmlns: {'prefix1': 'def', 'prefix2': 'ghi'}}, [
+        {$: {prefix2: ['prefixedElement']}}
+    ]).firstChild.namespaceURI,
+    ''
+);
+*/
+
+assert.matchesXMLString(
+    jml("ul", [
+        [
+            "li",
+                { "style" : "color:red" },
+                ["First Item"],
+            "li",
+                {
+                    "title" : "Some hover text.",
+                    "style" : "color:green"
+                },
+                ["Second Item"],
+            "li",
+                [
+                    ["span",
+                        {
+                            "class" : "Remove-Me",
+                            "style" : "font-weight:bold"
+                        },
+                        ["Not Filtered"]
+                    ],
+                    " Item"
+                ],
+            "li",
+                [
+                    ["a",
+                        {
+                            "href" : "#NewWindow"
+                        },
+                        ["Special Link"]
+                    ]
+                ],
+            null
+        ]
+    ], document.body),
+    '<ul xmlns="http://www.w3.org/1999/xhtml"><li style="color:red">First Item</li><li title="Some hover text." style="color:green">Second Item</li><li><span class="Remove-Me" style="font-weight:bold">Not Filtered</span> Item</li><li><a href="#NewWindow">Special Link</a></li></ul>'
 );
