@@ -18,6 +18,12 @@
             return document.querySelectorAll(sel);
         },
         assert = {
+            matches: function (item1, item2) {
+                if (!item2) { // For convenience in debugging
+                    alert(item1);
+                }
+                document.write((item1 === item2) + '<br />\n');
+            },
             matchesXMLStringWithinElement : function (element, item2) {
                 var docFrag = document.createDocumentFragment();
                 for (var i = 0; i < element.childNodes.length; i++) {
@@ -30,10 +36,8 @@
                 this.matchesXMLString(lastInsert, item2);
             },
             matchesXMLString: function (item1, item2) {
-                if (!item2) { // For debugging
-                    alert(new XMLSerializer().serializeToString(item1))
-                }
-                document.write((new XMLSerializer().serializeToString(item1) === item2) + '<br />\n');
+                item1 = new XMLSerializer().serializeToString(item1);
+                this.matches(item1, item2);
             }
         };
 
@@ -131,6 +135,11 @@
             'text3'
         ]),
         '<div xmlns="http://www.w3.org/1999/xhtml">text0text1<span>inner text</span>text2text3</div>'
+    );
+
+    assert.matchesXMLString(
+        jml('div', {dataset: {'abcDefGh': 'fff', 'jkl-mno-pq': 'ggg'}}),
+        '<div xmlns="http://www.w3.org/1999/xhtml" data-abc-def-gh="fff" data-jkl-mno-pq="ggg"></div>'
     );
 
     </script>

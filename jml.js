@@ -82,6 +82,15 @@ canHaveChildren necessary? (attempts to append to script and img)
     }
 
     /**
+    * @param {String} n0 Whole expression match (including "-")
+    * @param {String} n1 Lower-case letter match
+    * @returns {String} Uppercased letter
+    */
+    function _upperCase (n0, n1) {
+        return n1.toUpperCase();
+    }
+
+    /**
      * Creates an XHTML or HTML element (XHTML is preferred, but only in browsers that support);
      * Any element after element can be omitted, and any subsequent type or types added afterwards
      * @param {String} el The element to create (by lower-case name)
@@ -97,7 +106,7 @@ canHaveChildren necessary? (attempts to append to script and img)
      * @returns {DOMElement} The newly created (and possibly already appended) element or array of elements
      */
     function jml () {
-        var i, arg, procValue, p, val, elContainer, textnode, k, elsl, j, cl, elem = document.createDocumentFragment(), nodes = [], elStr, atts, child = [], argc = arguments.length, argv = arguments, NS_HTML = 'http://www.w3.org/1999/xhtml',
+        var i, arg, procValue, p, p2, attVal, val, elContainer, textnode, k, elsl, j, cl, elem = document.createDocumentFragment(), nodes = [], elStr, atts, child = [], argc = arguments.length, argv = arguments, NS_HTML = 'http://www.w3.org/1999/xhtml',
             _getType = function (item) {
                 if (typeof item === 'string') {
                     return 'string';
@@ -182,10 +191,10 @@ canHaveChildren necessary? (attempts to append to script and img)
                     atts = arg;
                     for (p in atts) {
                         if (atts.hasOwnProperty(p)) {
+                            attVal = atts[p];
                             switch(p) {
                                 /*
                                 Todos:
-                                0. Allow dataset shortcut
                                 0. add '$a' for array of ordered (prefix-)attribute-value arrays
                                 0. Allow "xmlns" to accept prefix-value array or array of prefix-value arrays
                                 0. {$: ['xhtml', 'div']} for prefixed elements
@@ -193,36 +202,43 @@ canHaveChildren necessary? (attempts to append to script and img)
                                 0. Add JsonML fix for style attribute and IE
                                 */
                                 case '#':
-                                    nodes[nodes.length] = jml.apply(null, [atts[p]]); // Nest within array to avoid confusion with elements
+                                    nodes[nodes.length] = jml.apply(null, [attVal]); // Nest within array to avoid confusion with elements
                                     break;
                                 case '$event': /* Could alternatively allow specific event names like 'change' or 'onchange'; could also alternatively allow object inside instead of array*/
-                                    _addEvent(elem, atts[p][0], atts[p][1], atts[p][2]); // element, event name, handler, capturing
+                                    _addEvent(elem, attVal[0], attVal[1], attVal[2]); // element, event name, handler, capturing
                                     break;
                                 case 'className': case 'class':
-                                    elem.className = atts[p];
+                                    elem.className = attVal;
+                                    break;
+                                case 'dataset':
+                                    for (p2 in attVal) { // Map can be keyed with hyphenated or camel-cased properties
+                                        if (attVal.hasOwnProperty(p2)) {
+                                            elem.dataset[p2.replace(/-([a-z])/g, _upperCase)] = attVal[p2];
+                                        }
+                                    }
                                     break;
                                 // Todo: Disable this by default unless configuration explicitly allows (for security)
                                 case 'innerHTML':
-                                    elem.innerHTML = atts[p];
+                                    elem.innerHTML = attVal;
                                     break;
                                 case 'selected' : case 'checked': case 'value' : case 'text':
-                                    elem[p] = atts[p];
+                                    elem[p] = attVal;
                                     break;
                                 // float not needed as for style.cssFloat (or style.styleFloat in IE)
                                 case 'htmlFor': case 'for':
                                     if (elStr === 'label') {
-                                        elem.htmlFor = atts[p];
+                                        elem.htmlFor = attVal;
                                         break;
                                     }
-                                    elem.setAttribute(p, atts[p]);
+                                    elem.setAttribute(p, attVal);
                                     break;
                                 default:
                                     // Todo: Allow key as plain "on" with map (like $event?)
                                     if (p.match(/^on/)) {
-                                        _addEvent(elem, p.slice(2), atts[p], false);
+                                        _addEvent(elem, p.slice(2), attVal, false);
                                         break;
                                     }
-                                    elem.setAttribute(p, atts[p]);
+                                    elem.setAttribute(p, attVal);
                                     break;
                             }
                         }
