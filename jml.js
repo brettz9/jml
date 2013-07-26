@@ -5,7 +5,7 @@ Todos:
 0. Note to self: Integrate research from other jml notes
 0. Allow building of generic XML (pass configuration object)
 0. Allow array as single first argument
-0. Settle on whether need to use null as last argument to return array (or fragment) or other way to allow appending?
+0. Settle on whether need to use null as last argument to return array (or fragment) or other way to allow appending? Options object at end instead to indicate whether returning array, fragment, etc.?
 0. Allow building content internally as a string (though allowing DOM methods, etc.?)
 
 Todos inspired by JsonML: https://github.com/mckamey/jsonml/blob/master/jsonml-html.js
