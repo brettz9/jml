@@ -196,7 +196,7 @@ canHaveChildren necessary? (attempts to append to script and img)
                                 Todos:
                                 0. Allow "xmlns" to accept prefix-value array or array of prefix-value arrays
                                 0. {$: ['xhtml', 'div']} for prefixed elements
-                                0. Support style object? / Add JsonML fix for style attribute and IE
+                                0. Support style object? / Add JsonML fix for style attribute and IE; if so, handle style.cssFloat (or style.styleFloat in IE)
                                 0. add '$a' for array of ordered (prefix-)attribute-value arrays
                                 0. Accept array for any attribute with first item as prefix and second as value?
                                 0. JSON mode to prevent event addition?
@@ -232,7 +232,6 @@ canHaveChildren necessary? (attempts to append to script and img)
                                 case 'selected' : case 'checked': case 'value':
                                     elem[p] = attVal;
                                     break;
-                                // float not needed as for style.cssFloat (or style.styleFloat in IE)
                                 case 'htmlFor': case 'for':
                                     if (elStr === 'label') {
                                         elem.htmlFor = attVal;
