@@ -143,14 +143,14 @@ var input2 = jml('input', {
         click: function () {
             alert('worked2');
         },
-        focus: function () {
+        focus: [function () {
             alert('worked3');
-        }
+        }, true]
     }
 }, document.body);
 ```
 
-Comments, processing instructions, entities, decimal or hexadecimal character references, CDATA sections...
+Comments, processing instructions, entities, decimal and hexadecimal character references, CDATA sections...
 
 ```javascript
 var div = jml('div', [
@@ -163,7 +163,7 @@ var div = jml('div', [
 ]);
 ```
 
-Namespace definitions...
+Namespace definitions (default or prefixed)...
 
 ```javascript
 jml('abc', {xmlns:'def'})

@@ -143,9 +143,9 @@ var input2 = jml('input', {
         click: function () {
             str = 'worked2';
         },
-        focus: function () {
+        focus: [function () {
             str = 'worked3';
-        }
+        }, true]
     }
 }, document.body); // For focus (or select) event to work, we need to append to the document
 input2.click();
