@@ -195,17 +195,27 @@ canHaveChildren necessary? (attempts to append to script and img)
                             switch(p) {
                                 /*
                                 Todos:
+                                0. Support style object?
                                 0. add '$a' for array of ordered (prefix-)attribute-value arrays
                                 0. Allow "xmlns" to accept prefix-value array or array of prefix-value arrays
                                 0. {$: ['xhtml', 'div']} for prefixed elements
-                                0. Accept array for any attribute with first item as prefix and second as value
+                                0. Accept array for any attribute with first item as prefix and second as value?
                                 0. Add JsonML fix for style attribute and IE
+                                0. JSON mode to prevent event addition?
                                 */
                                 case '#':
                                     nodes[nodes.length] = jml.apply(null, [attVal]); // Nest within array to avoid confusion with elements
                                     break;
-                                case '$event': /* Could alternatively allow specific event names like 'change' or 'onchange'; could also alternatively allow object inside instead of array*/
-                                    _addEvent(elem, attVal[0], attVal[1], attVal[2]); // element, event name, handler, capturing
+                                case '$on':
+                                    for (p2 in attVal) {
+                                        if (attVal.hasOwnProperty(p2)) {
+                                            val = attVal[p2];
+                                            if (typeof val === 'function') {
+                                                val = [val, false];
+                                            }
+                                            _addEvent(elem, p2, val[0], val[1]); // element, event name, handler, capturing
+                                        }
+                                    }
                                     break;
                                 case 'className': case 'class':
                                     elem.className = attVal;
@@ -221,7 +231,7 @@ canHaveChildren necessary? (attempts to append to script and img)
                                 case 'innerHTML':
                                     elem.innerHTML = attVal;
                                     break;
-                                case 'selected' : case 'checked': case 'value' : case 'text':
+                                case 'selected' : case 'checked': case 'value':
                                     elem[p] = attVal;
                                     break;
                                 // float not needed as for style.cssFloat (or style.styleFloat in IE)
@@ -233,7 +243,6 @@ canHaveChildren necessary? (attempts to append to script and img)
                                     elem.setAttribute(p, attVal);
                                     break;
                                 default:
-                                    // Todo: Allow key as plain "on" with map (like $event?)
                                     if (p.match(/^on/)) {
                                         _addEvent(elem, p.slice(2), attVal, false);
                                         break;

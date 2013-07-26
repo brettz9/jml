@@ -142,6 +142,29 @@
         '<div xmlns="http://www.w3.org/1999/xhtml" data-abc-def-gh="fff" data-jkl-mno-pq="ggg"></div>'
     );
 
+    var str,
+        input = jml('input', {$on: {click: [function () {
+            str = 'worked1';
+        }, true]}});
+    input.click();
+    assert.matches(str, 'worked1');
+
+    var input2 = jml('input', {
+        style: 'position:absolute; left: -1000px;',
+        $on: {
+            click: function () {
+                str = 'worked2';
+            },
+            focus: function () {
+                str = 'worked3';
+            }
+        }
+    }, document.body); // For focus (or select) event to work, we need to append to the document
+    input2.click();
+    assert.matches(str, 'worked2');
+    input2.focus();
+    assert.matches(str, 'worked3');
+
     </script>
 </body>
 </html>
