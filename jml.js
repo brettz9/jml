@@ -107,7 +107,7 @@ canHaveChildren necessary? (attempts to append to script and img)
      * @returns {DOMElement} The newly created (and possibly already appended) element or array of elements
      */
     function jml () {
-        var i, arg, procValue, p, p2, attVal, val, elContainer, textnode, k, elsl, j, cl, elem = document.createDocumentFragment(), nodes = [], elStr, atts, child = [], argc = arguments.length, argv = arguments, NS_HTML = 'http://www.w3.org/1999/xhtml',
+        var i, arg, procValue, p, p2, attVal, replaceStr = '', xmlns, val, elContainer, textnode, k, elsl, j, cl, elem = document.createDocumentFragment(), nodes = [], elStr, atts, child = [], argc = arguments.length, argv = arguments, NS_HTML = 'http://www.w3.org/1999/xhtml',
             _getType = function (item) {
                 if (typeof item === 'string') {
                     return 'string';
@@ -190,6 +190,29 @@ canHaveChildren necessary? (attempts to append to script and img)
                     break;
                 case 'object': // Non-DOM-element objects indicate attribute-value pairs
                     atts = arg;
+
+                    if (atts.xmlns !== undefined) { // We handle this here, as otherwise may lose events, etc.
+                        // As namespace of element already set as XHTML, we need to change the namespace
+                        // elem.setAttribute('xmlns', atts.xmlns); // Doesn't work
+                        // Can't set namespaceURI dynamically, renameNode() is not supported, and setAttribute() doesn't work to change the namespace, so we resort to this hack
+                        if (typeof atts.xmlns === 'object') {
+                            replaceStr = (function (xmlnsObj) {
+                                return function (n0) {
+                                    var retStr = xmlnsObj[''] ? 'xmlns="' + xmlnsObj[''] + '"' : n0; // Preserve XHTML
+                                    for (xmlns in xmlnsObj) {
+                                        if (xmlns !== '') {
+                                            retStr += ' xmlns:' + xmlns + '="' + xmlnsObj[xmlns] + '"';
+                                        }
+                                    }
+                                    return retStr;
+                                };
+                            }(atts.xmlns));
+                        }
+                        else {
+                            replaceStr = 'xmlns="' + atts.xmlns + '"';
+                        }
+                        elem = nodes[nodes.length - 1] = new DOMParser().parseFromString(new XMLSerializer().serializeToString(elem).replace('xmlns="' + NS_HTML + '"', replaceStr), 'application/xml').documentElement;
+                    }
                     for (p in atts) {
                         if (atts.hasOwnProperty(p)) {
                             attVal = atts[p];
@@ -197,7 +220,6 @@ canHaveChildren necessary? (attempts to append to script and img)
                                 /*
                                 Todos:
                                 0. Accept array for any attribute with first item as prefix and second as value?
-                                0. Allow "xmlns" to accept prefix-value array or array of prefix-value arrays?
                                 0. add '$a' for array of ordered (prefix-)attribute-value arrays
                                 0. {$: ['xhtml', 'div']} for prefixed elements
 
@@ -241,6 +263,9 @@ canHaveChildren necessary? (attempts to append to script and img)
                                         break;
                                     }
                                     elem.setAttribute(p, attVal);
+                                    break;
+                                case 'xmlns':
+                                    // Already handled
                                     break;
                                 default:
                                     if (p.match(/^on/)) {

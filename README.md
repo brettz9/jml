@@ -27,13 +27,27 @@ Rules (detailed)
 Examples
 ========
 
+Simple element...
+
 ```javascript
 var input = jml('input');
 ```
 
+Simple element with attributes...
+
 ```javascript
-var input = jml('input', {type:'password'});
+var input = jml('input', {type:'password', id:'my_pass'});
 ```
+
+Simple element with just child elements...
+
+```javascript
+var div = jml('div', [
+    ['p', ['no attributes on the div']]
+]);
+```
+
+Simple element with attributes and child elements...
 
 ```javascript
 var div = jml('div', {'class': 'myClass'}, [
@@ -42,15 +56,23 @@ var div = jml('div', {'class': 'myClass'}, [
 ]);
 ```
 
+Simple element with attributes, child elements, and text nodes...
+
 ```javascript
-var div = jml('div', [
-    ['p', ['no attributes on the div']]
+var div = jml('div', {'class': 'myClass'}, [
+    'text1',
+    ['p', ['Some inner text']],
+    'text3'
 ]);
 ```
+
+DOM attachment...
 
 ```javascript
 var simpleAttachToParent = jml('hr', document.body);
 ```
+
+Returning first element among siblings when appending them to a DOM element (API unstable)...
 
 ```javascript
 var firstTr = jml('tr', [
@@ -64,6 +86,8 @@ var firstTr = jml('tr', [
     table
 );
 ```
+
+Returning element siblings as an array (API unstable)...
 
 ```javascript
 var trsArray = jml('tr', [
@@ -79,6 +103,8 @@ var trsArray = jml('tr', [
 );
 ```
 
+Inclusion of regular DOM elements...
+
 ```javascript
 var div = jml(
     'div', [
@@ -90,13 +116,17 @@ var div = jml(
 );
 ```
 
+Document fragments addable anywhere within child elements...
+
 ```javascript
 jml('div', [
     'text0',
-    {'#': ['text1', ['span', ['inner text']], 'text2']}, // Add fragment anywhere within children
+    {'#': ['text1', ['span', ['inner text']], 'text2']},
     'text3'
 ])
 ```
+
+Event attachment...
 
 ```javascript
 var input = jml('input', {$on: {
@@ -105,6 +135,7 @@ var input = jml('input', {$on: {
     }, true] // Capturing
 }});
 ```
+
 ```javascript
 var input2 = jml('input', {
     style: 'position:absolute; left: -1000px;',
@@ -119,6 +150,8 @@ var input2 = jml('input', {
 }, document.body);
 ```
 
+Comments, processing instructions, entities, decimal or hexadecimal character references, CDATA sections...
+
 ```javascript
 var div = jml('div', [
     ['!', 'a comment'],
@@ -128,6 +161,20 @@ var div = jml('div', [
     ['#x', 'ab3'],
     ['![', '&test <CDATA> content']
 ]);
+```
+
+Namespace definitions...
+
+```javascript
+jml('abc', {xmlns:'def'})
+```
+
+```javascript
+jml('abc', {xmlns: {'prefix1': 'def', 'prefix2': 'ghi'}})
+```
+
+```javascript
+jml('abc', {xmlns: {'prefix1': 'def', 'prefix2': 'ghi', '': 'newdefault'}})
 ```
 
 Naming

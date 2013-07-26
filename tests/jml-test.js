@@ -18,8 +18,15 @@ assert.matchesXMLString(
 );
 
 assert.matchesXMLString(
-    jml('input', {type:'password'}),
-    '<input xmlns="http://www.w3.org/1999/xhtml" type="password" />'
+    jml('input', {type:'password', id: 'my_pass'}),
+    '<input xmlns="http://www.w3.org/1999/xhtml" type="password" id="my_pass" />'
+);
+
+assert.matchesXMLString(
+    jml('div', [
+        ['p', ['no attributes on the div']]
+    ]),
+    '<div xmlns="http://www.w3.org/1999/xhtml"><p>no attributes on the div</p></div>'
 );
 
 assert.matchesXMLString(
@@ -31,10 +38,12 @@ assert.matchesXMLString(
 );
 
 assert.matchesXMLString(
-    jml('div', [
-        ['p', ['no attributes on the div']]
+    jml('div', {'class': 'myClass'}, [
+        'text1',
+        ['p', ['Some inner text']],
+        'text3'
     ]),
-    '<div xmlns="http://www.w3.org/1999/xhtml"><p>no attributes on the div</p></div>'
+    '<div xmlns="http://www.w3.org/1999/xhtml" class="myClass">text1<p>Some inner text</p>text3</div>'
 );
 
 var simpleAttachToParent = jml('hr', document.body);
@@ -44,7 +53,7 @@ assert.matchesXMLStringOnElement(
     '<hr xmlns="http://www.w3.org/1999/xhtml" />'
 );
 
-var table = jml('table', document.body);
+var table = jml('table', {style: 'position:absolute; left: -1000px;'}, document.body);
 var firstTr = jml('tr', [
         ['td', ['row 1 cell 1']],
         ['td', ['row 1 cell 2']]
@@ -61,7 +70,7 @@ assert.matchesXMLStringWithinElement(
     '<tr xmlns="http://www.w3.org/1999/xhtml"><td>row 1 cell 1</td><td>row 1 cell 2</td></tr><tr xmlns="http://www.w3.org/1999/xhtml" class="anotherRowSibling"><td>row 2 cell 1</td><td>row 2 cell 2</td></tr>'
 );
 
-var table = jml('table', document.body); // Rebuild
+var table = jml('table', {style: 'position:absolute; left: -1000px;',}, document.body); // Rebuild
 var trsArray = jml('tr', [
         ['td', ['row 1 cell 1']],
         ['td', ['row 1 cell 2']]
@@ -83,7 +92,7 @@ assert.matchesXMLStringWithinElement(
 
 var parent = document.body;
 var div = jml(
-    'div', [
+    'div', {style: 'position:absolute; left: -1000px;',}, [
         $('#DOMChildrenMustBeInArray')[0]
     ],
     $('#anotherElementToAddToParent')[0],
@@ -92,8 +101,8 @@ var div = jml(
 );
 assert.matchesXMLString(
     div,
-    '<div xmlns="http://www.w3.org/1999/xhtml"><div id="DOMChildrenMustBeInArray">test1</div></div>'
-    // '<div xmlns="http://www.w3.org/1999/xhtml"><div id="DOMChildrenMustBeInArray">test1</div></div><div id="anotherElementToAddToParent">test2</div><div id="yetAnotherSiblingToAddToParent">test3</div>'
+    '<div xmlns="http://www.w3.org/1999/xhtml" style="position:absolute; left: -1000px;"><div id="DOMChildrenMustBeInArray" style="display:none;">test1</div></div>'
+    // '<div xmlns="http://www.w3.org/1999/xhtml" style="position:absolute; left: -1000px;"><div id="DOMChildrenMustBeInArray" style="display:none;">test1</div></div><div id="anotherElementToAddToParent" style="display:none;">test2</div><div id="yetAnotherSiblingToAddToParent" style="display:none;">test3</div>'
 );
 
 
@@ -105,6 +114,16 @@ assert.matchesXMLString(
     ]),
     '<div xmlns="http://www.w3.org/1999/xhtml">text0text1<span>inner text</span>text2text3</div>'
 );
+
+// Allow the following form (fragment INSTEAD of child array rather than the fragment as the only argument of a child array)? If so, add to README as well.
+/*
+assert.matchesXMLString(
+    jml('div',
+        {'#': ['text1', ['span', ['inner text']], 'text2']}
+    ),
+    '<div xmlns="http://www.w3.org/1999/xhtml">text1<span>inner text</span>text2</div>'
+);
+*/
 
 assert.matchesXMLString(
     jml('div', {dataset: {'abcDefGh': 'fff', 'jkl-mno-pq': 'ggg'}}),
@@ -150,4 +169,19 @@ assert.matchesXMLString(
 assert.matches(
     jml('abc', {xmlns:'def'}).namespaceURI,
     'def'
+);
+
+assert.matchesXMLString(
+    jml('abc', {xmlns: {'prefix1': 'def', 'prefix2': 'ghi'}}),
+    '<abc xmlns="http://www.w3.org/1999/xhtml" xmlns:prefix1="def" xmlns:prefix2="ghi"></abc>'
+);
+
+assert.matchesXMLString(
+    jml('abc', {xmlns: {'prefix1': 'def', 'prefix2': 'ghi', '': 'newdefault'}}),
+    '<abc xmlns="newdefault" xmlns:prefix1="def" xmlns:prefix2="ghi"/>'
+);
+
+assert.matches(
+    jml('abc', {xmlns: {'prefix1': 'def', 'prefix2': 'ghi', '': 'newdefault'}}).namespaceURI,
+    'newdefault'
 );
