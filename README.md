@@ -177,6 +177,11 @@ jml('abc', {xmlns: {'prefix1': 'def', 'prefix2': 'ghi'}})
 jml('abc', {xmlns: {'prefix1': 'def', 'prefix2': 'ghi', '': 'newdefault'}})
 ```
 
+Not yet implemented...
+
+1. Namespaced elements and attributes
+2. Ordered sequences of attributes (or namespace declarations) - necessary for perfect round-tripping (e.g., for diffs) given that object iteration order is not reliable across browser
+
 Naming
 ======
 
