@@ -98,7 +98,6 @@ var trsFragment = jml('tr', [
         ['td', ['row 2 cell 1']],
         ['td', ['row 2 cell 2']]
     ],
-    table,
     null
 );
 ```
