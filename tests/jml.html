@@ -3,6 +3,16 @@
 <head>
     <meta charset="utf-8" />
 	<title>JML test</title>
+<style>div {color:yellow;}</style>
+    <!-- Shims needed by jml.js; todo: replace with require shim plugin calls -->
+    <!--[if lte IE 8]><script> /* Testing in IE7-8!!!! This line needs to be in own tag; put after any stylesheets but before any scripts */ var _old$DocInfo$For$IE_ = [typeof HTMLDocument === 'undefined' ? {} : HTMLDocument, document]; </script><script src="html5shiv-ie.js"></script><![endif]-->
+    <script src="../dataset.js"></script>
+    <script src="../Array.isArray.js"></script>
+    <script src="../Array.prototype.reduce.js"></script>
+    <script src="../XMLSerializer.js"></script><!-- Also needed by assert.js -->
+    <script src="../DOMImplementation.prototype.createDocument.js"></script><!-- Used by DOMParser -->
+    <script src="../DOMParser.js"></script>
+
     <script src="../jml.js"></script>
 </head>
 <body>

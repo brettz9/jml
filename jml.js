@@ -9,10 +9,6 @@ Todos:
 0. Allow building content internally as a string (though allowing DOM methods, etc.?)
 
 Todos inspired by JsonML: https://github.com/mckamey/jsonml/blob/master/jsonml-html.js
-if (tag.toLowerCase() === 'style' && document.createStyleSheet) {
-    // IE requires this interface for styles
-    return document.createStyleSheet();
-}
 boolean attributes?
 DOM attributes?
 duplicate attributes?
@@ -28,19 +24,25 @@ canHaveChildren necessary? (attempts to append to script and img)
      * Need this function for IE since options weren't otherwise getting added
      * @private
      * @param {DOMElement} parent The parent to which to append the element
-     * @param {DOMNode} el The element or other node to append to the parent
+     * @param {DOMNode} child The element or other node to append to the parent
      */
-    function _appendNode (parent, el) {
-        if (parent.nodeName.toLowerCase() === 'select' && el.nodeName.toLowerCase() === 'option') {
+    function _appendNode (parent, child) {
+        var parentName = /*(!parent.nodeName && 'style') || */ parent.nodeName.toLowerCase(), // IE stylesheet object does not have a nodeName
+            childName = child.nodeName && child.nodeName.toLowerCase();
+
+        if (parentName === 'select' && childName === 'option') {
             try {
-                parent.add(el, null);
+                parent.add(child, null);
             }
             catch (err) {
-                parent.add(el); // IE
+                parent.add(child); // IE
             }
         }
-        else {
-            parent.appendChild(el);
+        else if (parentName === 'style' && document.createStyleSheet) {
+            parent.cssText = child.nodeValue; // IE
+        }
+        else /*if (child.cssText === undefined) */{ //
+            parent.appendChild(child);
         }
     }
 
@@ -154,7 +156,14 @@ canHaveChildren necessary? (attempts to append to script and img)
                                 procValue = procValue.join(' ');
                             }
                             // Firefox allows instructions with ">" in this method, but not if placed directly!
-                            nodes[nodes.length] = document.createProcessingInstruction(arg, procValue);
+                            try {
+                                nodes[nodes.length] = document.createProcessingInstruction(arg, procValue);
+                            }
+                            catch(e) {
+                                // Todo: Try innerHTML instead?
+                                // Getting NotSupportedError in IE, so we try to imitate a processing instruction with a comment
+                                nodes[nodes.length] = document.createComment('?' + arg + ' ' + procValue + '?');
+                            }
                             break;
                         // Browsers don't support document.createEntityReference, so we just use this as a convenience
                         case '&':
@@ -179,11 +188,14 @@ canHaveChildren necessary? (attempts to append to script and img)
                             break;
                         default: // An element
                             elStr = arg;
-                            // Fix this to depend on XML/config, not availability of methods
                             // Todo: Add JsonML code to handle name attribute
-                            if (document.createElementNS) {
+                            /*if (document.createStyleSheet && elStr.toLowerCase() === 'style') {
+                                elem = document.createStyleSheet(); // IE
+                            }
+                            else */ if (document.createElementNS) {
                                 elem = document.createElementNS(NS_HTML, elStr);
                             }
+                            // Fix this to depend on XML/config, not availability of methods
                             else {
                                 elem = document.createElement(elStr);
                             }
@@ -201,7 +213,7 @@ canHaveChildren necessary? (attempts to append to script and img)
                         if (typeof atts.xmlns === 'object') {
                             replaceStr = (function (xmlnsObj) {
                                 return function (n0) {
-                                    var retStr = xmlnsObj[''] ? 'xmlns="' + xmlnsObj[''] + '"' : n0; // Preserve XHTML
+                                    var retStr = xmlnsObj[''] ? ' xmlns="' + xmlnsObj[''] + '"' : (n0 || ''); // Preserve XHTML
                                     for (xmlns in xmlnsObj) {
                                         if (xmlns !== '') {
                                             retStr += ' xmlns:' + xmlns + '="' + xmlnsObj[xmlns] + '"';
@@ -212,9 +224,15 @@ canHaveChildren necessary? (attempts to append to script and img)
                             }(atts.xmlns));
                         }
                         else {
-                            replaceStr = 'xmlns="' + atts.xmlns + '"';
+                            replaceStr = ' xmlns="' + atts.xmlns + '"';
                         }
-                        elem = nodes[nodes.length - 1] = new DOMParser().parseFromString(new XMLSerializer().serializeToString(elem).replace('xmlns="' + NS_HTML + '"', replaceStr), 'application/xml').documentElement;
+
+                        elem = nodes[nodes.length - 1] = new DOMParser().parseFromString(
+                            new XMLSerializer().serializeToString(elem).
+                                // Mozilla adds XHTML namespace
+                                replace(' xmlns="' + NS_HTML + '"', replaceStr),
+                            'application/xml'
+                        ).documentElement;
                     }
                     for (p in atts) {
                         if (atts.hasOwnProperty(p)) {
@@ -304,7 +322,7 @@ canHaveChildren necessary? (attempts to append to script and img)
                     child = arg;
                     for (j = 0, cl = child.length; j < cl; j++) { // Go through children array container to handle elements
                         if (typeof child[j] === 'string') {
-                            elem.appendChild(document.createTextNode(child[j]));
+                            _appendNode(elem, document.createTextNode(child[j]));
                         }
                         else if (Array.isArray(child[j])) { // Arrays representing child elements
                             _appendNode(elem, jml.apply(null, child[j]));

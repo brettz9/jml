@@ -12,6 +12,11 @@ var $ = function (sel) {
 
 // BEGIN TESTS
 
+//alert(new XMLSerializer().serializeToString(document.createElement('div')))
+
+var br = document.createElement('br')
+br.className = 'a>bc';
+//alert(new XMLSerializer().serializeToString(br))
 assert.matchesXMLString(
     jml('input'),
     '<input xmlns="http://www.w3.org/1999/xhtml" />'
@@ -46,10 +51,13 @@ assert.matchesXMLString(
     '<div xmlns="http://www.w3.org/1999/xhtml" class="myClass">text1<p>Some inner text</p>text3</div>'
 );
 
+if (!document.body) {
+    document.body = document.getElementsByTagName('body')[0];
+}
 var simpleAttachToParent = jml('hr', document.body);
 
 assert.matchesXMLStringOnElement(
-    document.body,
+    document.getElementsByTagName('body')[0],
     '<hr xmlns="http://www.w3.org/1999/xhtml" />'
 );
 
@@ -230,3 +238,10 @@ assert.matchesXMLString(
     ], document.body),
     '<ul xmlns="http://www.w3.org/1999/xhtml"><li style="color:red">First Item</li><li title="Some hover text." style="color:green">Second Item</li><li><span class="Remove-Me" style="font-weight:bold">Not Filtered</span> Item</li><li><a href="#NewWindow">Special Link</a></li></ul>'
 );
+
+assert.matchesXMLString(
+    jml('style', ['p.test {color:red;}'], document.body),
+    '<style xmlns="http://www.w3.org/1999/xhtml">p.test {color:red;}</style>'
+);
+
+jml('p', {'class': 'test'}, ['test'], document.body);
