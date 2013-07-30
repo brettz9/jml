@@ -2,12 +2,12 @@
 
 /**
  * Add dataset support to elements
- * No globals, no overriding prototype with non-standard methods, 
- *   handles CamelCase properly, attempts to use standard 
- *   Object.defineProperty() (and Function bind()) methods, 
+ * No globals, no overriding prototype with non-standard methods,
+ *   handles CamelCase properly, attempts to use standard
+ *   Object.defineProperty() (and Function bind()) methods,
  *   falls back to native implementation when existing
- * Inspired by http://code.eligrey.com/html5/dataset/ 
- *   (via https://github.com/adalgiso/html5-dataset/blob/master/html5-dataset.js )
+ * Inspired by http://code.eligrey.com/html5/dataset/
+ *   (via {@link https://github.com/adalgiso/html5-dataset/blob/master/html5-dataset.js})
  * Depends on Function.bind and Object.defineProperty/Object.getOwnPropertyDescriptor (shims below)
  * Licensed under the X11/MIT License
 */
@@ -41,20 +41,20 @@ if (!Function.prototype.bind) {
 /*
  * Xccessors Standard: Cross-browser ECMAScript 5 accessors
  * http://purl.eligrey.com/github/Xccessors
- * 
+ *
  * 2010-06-21
- * 
+ *
  * By Eli Grey, http://eligrey.com
- * 
+ *
  * A shim that partially implements Object.defineProperty,
  * Object.getOwnPropertyDescriptor, and Object.defineProperties in browsers that have
  * legacy __(define|lookup)[GS]etter__ support.
- * 
+ *
  * Licensed under the X11/MIT License
  *   See LICENSE.md
 */
 
-// Removed a few JSLint options as Notepad++ JSLint validator complaining and 
+// Removed a few JSLint options as Notepad++ JSLint validator complaining and
 //   made comply with JSLint; also moved 'use strict' inside function
 /*jslint white: true, undef: true, plusplus: true,
   bitwise: true, regexp: true, newcap: true, maxlen: 90 */
@@ -69,7 +69,7 @@ if (!Function.prototype.bind) {
     lookupGetter = ObjectProto.__lookupGetter__,
     lookupSetter = ObjectProto.__lookupSetter__,
     hasOwnProp = ObjectProto.hasOwnProperty;
-    
+
     if (defineGetter && defineSetter && lookupGetter && lookupSetter) {
 
         if (!Object.defineProperty) {
@@ -77,7 +77,7 @@ if (!Function.prototype.bind) {
                 if (arguments.length < 3) { // all arguments required
                     throw new TypeError("Arguments not optional");
                 }
-                
+
                 prop += ""; // convert prop to string
 
                 if (hasOwnProp.call(descriptor, "value")) {
@@ -87,7 +87,7 @@ if (!Function.prototype.bind) {
                     }
 
                     if ((hasOwnProp.call(descriptor, "get") ||
-                         hasOwnProp.call(descriptor, "set"))) 
+                         hasOwnProp.call(descriptor, "set")))
                     {
                         // descriptor has a value prop but accessor already exists
                         throw new TypeError("Cannot specify an accessor and a value");
@@ -96,7 +96,7 @@ if (!Function.prototype.bind) {
 
                 // can't switch off these features in ECMAScript 3
                 // so throw a TypeError if any are false
-                if (!(descriptor.writable && descriptor.enumerable && 
+                if (!(descriptor.writable && descriptor.enumerable &&
                     descriptor.configurable))
                 {
                     throw new TypeError(
@@ -104,14 +104,14 @@ if (!Function.prototype.bind) {
                         " false for configurable, enumerable, or writable."
                     );
                 }
-                
+
                 if (descriptor.get) {
                     defineGetter.call(obj, prop, descriptor.get);
                 }
                 if (descriptor.set) {
                     defineSetter.call(obj, prop, descriptor.set);
                 }
-            
+
                 return obj;
             };
         }
@@ -121,7 +121,7 @@ if (!Function.prototype.bind) {
                 if (arguments.length < 2) { // all arguments required
                     throw new TypeError("Arguments not optional.");
                 }
-                
+
                 prop += ""; // convert prop to string
 
                 var descriptor = {
@@ -145,14 +145,14 @@ if (!Function.prototype.bind) {
                 // populate descriptor.get and descriptor.set (IE's behavior)
                 delete descriptor.writable;
                 descriptor.get = descriptor.set = undefined;
-                
+
                 if (getter) {
                     descriptor.get = getter;
                 }
                 if (setter) {
                     descriptor.set = setter;
                 }
-                
+
                 return descriptor;
             };
         }
@@ -172,7 +172,7 @@ if (!Function.prototype.bind) {
 
 // Begin dataset code
 
-if (!document.documentElement.dataset && 
+if (!document.documentElement.dataset &&
          // FF is empty while IE gives empty object
         (!Object.getOwnPropertyDescriptor(Element.prototype, 'dataset')  ||
         !Object.getOwnPropertyDescriptor(Element.prototype, 'dataset').get)
@@ -181,9 +181,9 @@ if (!document.documentElement.dataset &&
         enumerable: true,
         get: function () {
             'use strict';
-            var i, 
+            var i,
                 that = this,
-                HTML5_DOMStringMap, 
+                HTML5_DOMStringMap,
                 attrVal, attrName, propName,
                 attribute,
                 attributes = this.attributes,
@@ -195,8 +195,8 @@ if (!document.documentElement.dataset &&
                     return this;
                 },
                 setter = function (attrName, value) {
-                    return (typeof value !== 'undefined') ? 
-                        this.setAttribute(attrName, value) : 
+                    return (typeof value !== 'undefined') ?
+                        this.setAttribute(attrName, value) :
                         this.removeAttribute(attrName);
                 };
             try { // Simulate DOMStringMap w/accessor support
@@ -209,9 +209,9 @@ if (!document.documentElement.dataset &&
             }
             for (i = 0; i < attsLength; i++) {
                 attribute = attributes[i];
-                // Fix: This test really should allow any XML Name without 
+                // Fix: This test really should allow any XML Name without
                 //         colons (and non-uppercase for XHTML)
-                if (attribute && attribute.name && 
+                if (attribute && attribute.name &&
                     (/^data-\w[\w\-]*$/).test(attribute.name)) {
                     attrVal = attribute.value;
                     attrName = attribute.name;
@@ -229,11 +229,12 @@ if (!document.documentElement.dataset &&
                     }
                 }
             }
+            // Todo: WeakMap to associate any element with properties?
             return HTML5_DOMStringMap;
         }
     };
     try {
-        // FF enumerates over element's dataset, but not 
+        // FF enumerates over element's dataset, but not
         //   Element.prototype.dataset; IE9 iterates over both
         Object.defineProperty(Element.prototype, 'dataset', propDescriptor);
     } catch (e) {

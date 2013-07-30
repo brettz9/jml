@@ -1,35 +1,74 @@
 /*globals exports*/
 (function () {
 /*
+Todos inspired by JsonML: https://github.com/mckamey/jsonml/blob/master/jsonml-html.js
+0. Support style object? / Confirm utility of JsonML fix for style attribute and IE; if so, handle style.cssFloat (or style.styleFloat in IE)
+
+0. Add JsonML code to handle name attribute (during element creation)
+0. boolean attributes?
+0. DOM attributes?
+0. duplicate attributes?
+0. expand with attr_map
+0. equivalent of markup, to allow strings to be embedded within an object (e.g., {$value: '<div>id</div>'}); advantage over innerHTML in that it wouldn't need to work as the entire contents (nor destroy any existing content or handlers)
+0. More validation?
+0. JsonML DOM Level 0 listener
+0. Whitespace trimming?
+
+JsonML element-specific:
+0. table appending
+0. IE object-param handling
+0. canHaveChildren necessary? (attempts to append to script and img)
+
 Todos:
 0. Note to self: Integrate research from other jml notes
-0. Allow building of generic XML (pass configuration object)
 0. Allow array as single first argument
-0. Settle on whether need to use null as last argument to return array (or fragment) or other way to allow appending? Options object at end instead to indicate whether returning array, fragment, first element, etc.?
+0. Settle on whether need to use null as last argument to return array (or fragment) or other way to allow appending? Options object at end instead to indicate whether returning array, fragment, first element, etc.? Use JsonML approach of empty string?
+0. Allow building of generic XML (pass configuration object)
 0. Allow building content internally as a string (though allowing DOM methods, etc.?)
 
-Todos inspired by JsonML: https://github.com/mckamey/jsonml/blob/master/jsonml-html.js
-boolean attributes?
-DOM attributes?
-duplicate attributes?
-expand with attr_map
-table appending
-IE object-param handling
-canHaveChildren necessary? (attempts to append to script and img)
 */
 
     'use strict';
 
     /**
+    * Retrieve the (lower-cased) HTML name of a node
+    * @static
+    * @param {Node} node The HTML node
+    * @returns {String} The lower-cased node name
+    */
+    function _getHTMLNodeName (node) {
+        return node.nodeName && node.nodeName.toLowerCase();
+    }
+
+    /**
+    * Apply styles if this is a style tag
+    * @static
+    * @param {Node} node The element to check whether it is a style tag
+    */
+    function _applyAnyStylesheet (node) {
+        if (!document.createStyleSheet) {
+            return;
+        }
+        if (_getHTMLNodeName(node) === 'style') { // IE
+            var ss = document.createStyleSheet(); // Create a stylesheet to actually do something useful
+            ss.cssText = node.cssText;
+            // We continue to add the style tag, however
+        }
+    }
+
+    /**
      * Need this function for IE since options weren't otherwise getting added
      * @private
+     * @static
      * @param {DOMElement} parent The parent to which to append the element
      * @param {DOMNode} child The element or other node to append to the parent
      */
     function _appendNode (parent, child) {
-        var parentName = /*(!parent.nodeName && 'style') || */ parent.nodeName.toLowerCase(), // IE stylesheet object does not have a nodeName
-            childName = child.nodeName && child.nodeName.toLowerCase();
+        var ss,
+            parentName = _getHTMLNodeName(parent),
+            childName = _getHTMLNodeName(child);
 
+        // Todo: confirm this works
         if (parentName === 'select' && childName === 'option') {
             try {
                 parent.add(child, null);
@@ -38,16 +77,24 @@ canHaveChildren necessary? (attempts to append to script and img)
                 parent.add(child); // IE
             }
         }
-        else if (parentName === 'style' && document.createStyleSheet) {
-            parent.cssText = child.nodeValue; // IE
-        }
-        else /*if (child.cssText === undefined) */{ //
+        else {
+            if (document.createStyleSheet) {
+                if (parentName === 'script') {
+                    parent.text = child.nodeValue;
+                    return;
+                }
+                if (parentName === 'style') {
+                    parent.cssText = child.nodeValue; // This will not apply it--just make it available within the DOM cotents
+                    return;
+                }
+            }
             parent.appendChild(child);
         }
     }
 
     /**
      * Attach event in a cross-browser fashion
+     * @static
      * @param {DOMElement} el DOM element to which to attach the event
      * @param {String} type The DOM event (without 'on') to attach to the element
      * @param {Function} handler The event handler to attach to the element
@@ -132,6 +179,7 @@ canHaveChildren necessary? (attempts to append to script and img)
             switch (_getType(arg)) {
                 case 'null': // null always indicates a place-holder (only needed for last argument if want array returned)
                     if (i === argc - 1) {
+                        _applyAnyStylesheet(nodes[0]); // We have to execute any stylesheets even if not appending or otherwise IE will never apply them
                         return nodes.length <= 1 ? nodes[0] : nodes.reduce(function (frag, node) {
                             frag.appendChild(node);
                             return frag;
@@ -159,9 +207,12 @@ canHaveChildren necessary? (attempts to append to script and img)
                             try {
                                 nodes[nodes.length] = document.createProcessingInstruction(arg, procValue);
                             }
-                            catch(e) {
-                                // Todo: Try innerHTML instead?
-                                // Getting NotSupportedError in IE, so we try to imitate a processing instruction with a comment
+                            catch(e) { // Getting NotSupportedError in IE, so we try to imitate a processing instruction with a comment
+                                // innerHTML didn't work
+                                    // elContainer = document.createElement('div');
+                                    // elContainer.innerHTML = '<?' + document.createTextNode(arg + ' ' + procValue).nodeValue + '?>';
+                                    // nodes[nodes.length] = elContainer.innerHTML;
+                                // Todo: any other way to resolve? Just use XML?
                                 nodes[nodes.length] = document.createComment('?' + arg + ' ' + procValue + '?');
                             }
                             break;
@@ -188,11 +239,7 @@ canHaveChildren necessary? (attempts to append to script and img)
                             break;
                         default: // An element
                             elStr = arg;
-                            // Todo: Add JsonML code to handle name attribute
-                            /*if (document.createStyleSheet && elStr.toLowerCase() === 'style') {
-                                elem = document.createStyleSheet(); // IE
-                            }
-                            else */ if (document.createElementNS) {
+                            if (document.createElementNS) {
                                 elem = document.createElementNS(NS_HTML, elStr);
                             }
                             // Fix this to depend on XML/config, not availability of methods
@@ -226,13 +273,14 @@ canHaveChildren necessary? (attempts to append to script and img)
                         else {
                             replaceStr = ' xmlns="' + atts.xmlns + '"';
                         }
-
+//try {
                         elem = nodes[nodes.length - 1] = new DOMParser().parseFromString(
                             new XMLSerializer().serializeToString(elem).
                                 // Mozilla adds XHTML namespace
                                 replace(' xmlns="' + NS_HTML + '"', replaceStr),
                             'application/xml'
                         ).documentElement;
+//}catch(e) {alert(elem.outerHTML);throw e;}
                     }
                     for (p in atts) {
                         if (atts.hasOwnProperty(p)) {
@@ -244,11 +292,10 @@ canHaveChildren necessary? (attempts to append to script and img)
                                 0. add '$a' for array of ordered (prefix-)attribute-value arrays
                                 0. {$: ['xhtml', 'div']} for prefixed elements
 
-                                0. Support style object? / Add JsonML fix for style attribute and IE; if so, handle style.cssFloat (or style.styleFloat in IE)
                                 0. JSON mode to prevent event addition?
                                 */
                                 /* unfinished:
-                                case '$':
+                                case '$': // Element with prefix?
                                     nodes[nodes.length] = elem = document.createElementNS(attVal[0], attVal[1]);
                                     break;
                                 */
@@ -298,6 +345,15 @@ canHaveChildren necessary? (attempts to append to script and img)
                                         _addEvent(elem, p.slice(2), attVal, false);
                                         break;
                                     }
+                                    if (p === 'style') { // setAttribute will work, but erases any existing styles
+                                        if (elem.style.cssText !== undefined) {
+                                            elem.style.cssText = attVal;
+                                        }
+                                        else {
+                                            elem.style = attVal;
+                                        }
+                                        break;
+                                    }
                                     elem.setAttribute(p, attVal);
                                     break;
                             }
@@ -313,6 +369,7 @@ canHaveChildren necessary? (attempts to append to script and img)
                         for (k = 0, elsl = nodes.length; k < elsl; k++) {
                             _appendNode(arg, nodes[k]);
                         }
+                        _applyAnyStylesheet(nodes[0]); // We have to execute any stylesheets even if not appending or otherwise IE will never apply them
                     }
                     else {
                         nodes[nodes.length] = arg;
