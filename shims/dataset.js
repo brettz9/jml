@@ -16,9 +16,9 @@
 if (!Function.prototype.bind) {
     Function.prototype.bind = function (oThis) {
         'use strict';
-        if (typeof this !== "function") {
+        if (typeof this !== 'function') {
             // closest thing possible to the ECMAScript 5 internal IsCallable function
-            throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+            throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
         }
 
         var aArgs = Array.prototype.slice.call(arguments, 1),
@@ -75,22 +75,22 @@ if (!Function.prototype.bind) {
         if (!Object.defineProperty) {
             Object.defineProperty = function (obj, prop, descriptor) {
                 if (arguments.length < 3) { // all arguments required
-                    throw new TypeError("Arguments not optional");
+                    throw new TypeError('Arguments not optional');
                 }
 
-                prop += ""; // convert prop to string
+                prop += ''; // convert prop to string
 
-                if (hasOwnProp.call(descriptor, "value")) {
+                if (hasOwnProp.call(descriptor, 'value')) {
                     if (!lookupGetter.call(obj, prop) && !lookupSetter.call(obj, prop)) {
                         // data property defined and no pre-existing accessors
                         obj[prop] = descriptor.value;
                     }
 
-                    if ((hasOwnProp.call(descriptor, "get") ||
-                         hasOwnProp.call(descriptor, "set")))
+                    if ((hasOwnProp.call(descriptor, 'get') ||
+                         hasOwnProp.call(descriptor, 'set')))
                     {
                         // descriptor has a value prop but accessor already exists
-                        throw new TypeError("Cannot specify an accessor and a value");
+                        throw new TypeError('Cannot specify an accessor and a value');
                     }
                 }
 
@@ -100,8 +100,8 @@ if (!Function.prototype.bind) {
                     descriptor.configurable))
                 {
                     throw new TypeError(
-                        "This implementation of Object.defineProperty does not support" +
-                        " false for configurable, enumerable, or writable."
+                        'This implementation of Object.defineProperty does not support' +
+                        ' false for configurable, enumerable, or writable.'
                     );
                 }
 
@@ -119,10 +119,10 @@ if (!Function.prototype.bind) {
         if (!Object.getOwnPropertyDescriptor) {
             Object.getOwnPropertyDescriptor = function (obj, prop) {
                 if (arguments.length < 2) { // all arguments required
-                    throw new TypeError("Arguments not optional.");
+                    throw new TypeError('Arguments not optional.');
                 }
 
-                prop += ""; // convert prop to string
+                prop += ''; // convert prop to string
 
                 var descriptor = {
                     configurable: true,
