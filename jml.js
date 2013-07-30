@@ -274,6 +274,7 @@ Todos:
                             replaceStr = ' xmlns="' + atts.xmlns + '"';
                         }
 //try {
+                        // Also fix DOMParser to work with text/html
                         elem = nodes[nodes.length - 1] = new DOMParser().parseFromString(
                             new XMLSerializer().serializeToString(elem).
                                 // Mozilla adds XHTML namespace
