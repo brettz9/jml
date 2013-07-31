@@ -1,40 +1,38 @@
 /**
-* @license MIT, GPL, do whatever you want
-* @todo CSSStyleDeclaration.js required to fix item check ? Other types to support? Go back to checking to slice document instead of document.documentElement in case not set or somehow make independent of document altogether?
-* @todo Add to https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
-* @todo Replace with shim loading requirejs plugin
-* @see https://gist.github.com/brettz9/6093105
+ * Shim for "fixing" IE's lack of support (IE < 9) for applying slice
+ * on host objects like NamedNodeMap, NodeList, and HTMLCollection
+ * (technically, since host objects are implementation-dependent,
+ * IE doesn't need to work this way). Also works on strings,
+ * fixes IE to allow an explicit undefined for the 2nd argument
+ * (as in Firefox), and prevents errors when called on other
+ * DOM objects.
+ * @license MIT, GPL, do whatever you want
+ * @see https://gist.github.com/brettz9/6093105
+ * @todo Replace with shim loading requirejs plugin
 */
-try {
-    Array.prototype.slice.call(document.documentElement);
-}
-catch (e) { // Fails in IE8
-    (function () {
-        var _slice = Array.prototype.slice;
-        Array.prototype.slice = function (object) {
-            try {
-                if (typeof this.length === 'number' &&
-                    (this.nodeType === 1 ||
-                        typeof this.item !== 'function' ||
-                        (typeof this.item(0) === 'number') // We always want this to be true by now unless it throws an error (we can't just check for the property, as IE expects it to be executed)
-                    )
-                ) { // Duck-type for DOM elements, NamedNodeMap's, or HTMLCollection's as IE<9 does not support slice calls
-                    var i, ol = this.length, a = [];
-                    for (i = 0; i < ol; i++) {
-                        a.push(this[i]);
-                    }
-                    return a;
+(function () {
+    'use strict';
+    var _slice = Array.prototype.slice;
+
+    try {
+        _slice.call(document.documentElement); // Can't be used with DOM elements in IE < 9
+    }
+    catch (e) { // Fails in IE < 9
+        Array.prototype.slice = function (begin, end, testa) {
+            var i, arrl = this.length, a = [];
+            if (this.charAt) { // Although IE < 9 does not fail when applying Array.prototype.slice
+                               // to strings, here we do have to duck-type to avoid failing
+                               // with IE < 9's lack of support for string indexes
+                for (i = 0; i < arrl; i++) {
+                    a.push(this.charAt(i));
                 }
             }
-            catch(e) {
+            else { // This will work for genuine arrays, array-like objects, NamedNodeMap (attributes, entities, notations), NodeList (e.g., getElementsByTagName), HTMLCollection (e.g., childNodes), and will not fail on other DOM objects (as do DOM elements in IE < 9)
+                for (i = 0; i < this.length; i++) { // IE < 9 (at least IE < 9 mode in IE 10) does not work with node.attributes (NamedNodeMap) without a dynamically checked length here
+                    a.push(this[i]);
+                }
             }
-            try {
-                return _slice.call(this);
-            }
-            catch(e) {
-                // alert(typeof this.item(0));
-                throw e;
-            }
-        }
-    }());
-}
+            return _slice.call(a, begin, end || a.length); // IE < 9 gives errors here if end is allowed as undefined (as opposed to just missing) so we default ourselves
+        };
+    }
+}());

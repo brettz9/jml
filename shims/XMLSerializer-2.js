@@ -1,6 +1,6 @@
 /**
 * @license MIT, GPL, Do what you want
-* @requires shim: Array.prototype.slice
+* @requires shim: Array.from
 * @requires shim: Array.prototype.map
 * @requires shim: Node.prototype.lookupNamespaceURI
 */
@@ -152,7 +152,7 @@ var XMLSerializer;
 
                                         try {
 
-                                        string += ' style="' + [].slice.call(node.style).sort().map(function (style) {
+                                        string += ' style="' + Array.from(node.style).sort().map(function (style) {
                                             // This approach not supported in IE (without a CSSStyleDeclaration shim); we can't get IE
                                             //   to shim the style object to auto-return lower-cased values, however, since it is already defined
                                             //   and IE does not allow redefining an existing method
