@@ -26,6 +26,7 @@ Todos:
 0. Allow building of generic XML (pass configuration object)
 0. Allow building content internally as a string (though allowing DOM methods, etc.?)
 0. Redo browser testing (including IE7 if and where possible)
+0. Support JsonML empty string element name to represent fragments?
 */
 
     'use strict';
