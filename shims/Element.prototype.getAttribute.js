@@ -1,7 +1,10 @@
 /*globals Element*/
+/**
+* @todo Fix regex to work with Firefox, etc.
+*/
 (function () {
     'use strict';
-    
+
     var _ruleMatch = new RegExp('([\\w\\-]+)(: [^\\(\\); ]+(?:\\([^\\)]*\\))?)( !important)?(?:(; )|($))', 'gi'),
         _getAttr = Element.prototype.getAttribute;
 
@@ -40,6 +43,21 @@
     }
 
     /**
+    *
+    * @static
+    */
+    function _execIntoArray (regex, str, cb, obj, a) {
+        var matches, ret;
+        if (!regex.global) { // Avoid infinite loops
+            regex = _mixinRegex(regex, 'g');
+        }
+        a = a || [];
+        while ((matches = regex.exec(str)) !== null) {
+            a.push(cb.apply(obj || null, matches));
+        }
+        return a;
+    }
+    /**
     * IE does allow us to override this DOM method, so we standardize behavior to lower-case the properties.
     * For some reason, as of IE 9 (including 10), a semi-colon will be inserted at the end of the rules even if not present,
     *  though this behavior is not present in Mozilla. IE8 has its own issue in that it always omits the semicolon at the
@@ -52,11 +70,9 @@
     Element.prototype.getAttribute = function (attrName) {
         var rules, getAttrResult = _getAttr.apply(this, arguments);
         if (getAttrResult && attrName === 'style') {
-            rules = [];
-            _exec(_ruleMatch, getAttrResult, function (n0, property, propertyValue, important, endColon, endNoColon) {
-                rules.push(property.toLowerCase() + propertyValue + important + (endColon || ';'));
-            });
-            return rules.sort().join(' ');
+            return _execIntoArray(_ruleMatch, getAttrResult, function (n0, property, propertyValue, important, endColon, endNoColon) {
+                return property.toLowerCase() + propertyValue + important + (endColon || ';');
+            }).sort().join(' ');
         }
         return getAttrResult;
     };
