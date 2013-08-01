@@ -1,6 +1,14 @@
-/*globals CSSStyleDeclaration*/
+/*globals CSSStyleDeclaration, DOMException*/
 /**
-* @requires shim:Object.defineProperty
+* The only properties still part of the standard spec on CSSStyleDeclaration for IE < 9 (i.e., IE's IHTMLStyle2) are: 
+* 1. cssText
+* 2. (Any explicitly added) styles
+* 3. The following which are apparently always present even when not explicitly set: textDecorationBlink, textDecorationNone, textDecorationOverline, textDecorationLineThrough, textDecorationUnderline, posLeft, posBottom, posWidth, posTop, posHeight, posRight, accelerator
+* The only methods (or properties) on this IE < 9 version of CSSStyleDeclaration or its prototype (at least enumerable ones) are: setAttribute, getAttribute, removeAttribute, setExpression, getExpression, removeExpression (not working), and toString.
+* Given a lack of access per these available methods, the parentRule property is the one property which apparently cannot be shimmed.
+* Mozilla also has getPropertyCSSValue for its version of window.computedStyle(), but CSSStyleDeclaration's is not cross-browser nor part of the latest CSSOM spec: http://dev.w3.org/csswg/cssom/
+* @requires shim: Object.defineProperty
+* @requires shim: DOMException
 */
 if (!CSSStyleDeclaration.prototype.getPropertyValue) {
     (function () {
@@ -26,6 +34,14 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
             );
             regex.lastIndex = lastIndex;
             return regex;
+        }
+
+        function _notSupportedError () {
+            // We'll allow it to work with a full proper shim if the (non-standard) shim-helper method has been added
+            throw DOMException && DOMException.create ?
+                DOMException.create(9) :
+                // If the shim-helper is not loaded (e.g., to reduce overhead and/or modifying a global's property), we'll throw our own light DOMException
+                {name: 'NotSupportedError', message: 'NotSupportedError: DOM Exception 9', code: 9};
         }
 
         /**
@@ -88,13 +104,13 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
         }
 
         CSSStyleDeclaration.prototype.getPropertyValue = function(a) {
-            return this.getAttribute(a);
+            return this.getAttribute(String(a));
         };
         CSSStyleDeclaration.prototype.setProperty = function(a, b) {
-            return this.setAttribute(String(a), b);
+            return this.setAttribute(String(a), String(b));
         };
         CSSStyleDeclaration.prototype.removeProperty = function(a) {
-            return this.removeAttribute(a);
+            return this.removeAttribute(String(a));
         };
         Object.defineProperty(CSSStyleDeclaration.prototype, 'length', {
             enumerable: false, // Should be true, but IE won't allow (and we only need the shim for IE? If not, repeat after putting this in a try-catch)
@@ -103,6 +119,7 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
             }
         });
         CSSStyleDeclaration.prototype.item = function(idx) {
+            idx = idx.valueOf();
             return _execExitOnMatchWithCount(ruleMatch, this.cssText, function (i, n0) {
                 if (i === idx) {
                     return n0;
@@ -113,27 +130,21 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
             // The addition of "\\)" toward the beginning is to prevent a match within parentheses
             // This should work since it should grab ALL rules (though invalid ones might in rare cases throw things off)
             return _execExitOnMatch(ruleMatch, this.cssText, function (n0, property, important) {
-                if (property.toLowerCase() === propToMatch.toLowerCase() && important) {
+                if (property.toLowerCase() === String(propToMatch).toLowerCase() && important) {
                     return 'important';
                 }
             }) || '';
         };
-
-    // todo: add properties: parentRule (containing cssRule)?
-    // todo: add method?: getPropertyCSSValue
+        // getPropertyCSSValue from Mozilla's window.computedStyle CSSStyleDeclaration's is not cross-browser nor part of the latest CSSOM spec: http://dev.w3.org/csswg/cssom/
+        CSSStyleDeclaration.prototype.getPropertyCSSValue = function () {
+            _notSupportedError();
+        };
+        // Todo: any way to support?
+        Object.defineProperty(CSSStyleDeclaration.prototype, 'parentRule', { // the containing cssRule
+            enumerable: false, // Should be true, but IE won't allow (and we only need the shim for IE? If not, repeat after putting this in a try-catch)
+            get: function () { // read-only
+                _notSupportedError();
+            }
+        });
     }());
 }
-// From old CSSStyleDeclaration (directly), the properties still part of the standard spec:
-    // 1. cssText
-    // 2. (Any explicitly added) styles:
-    // 3. Apparently always present even when not explicitly set: textDecorationBlink, textDecorationNone, textDecorationOverline, textDecorationLineThrough, textDecorationUnderline, posLeft, posBottom, posWidth, posTop, posHeight, posRight, accelerator
-// From IHTMLStyle2 (IE8's non-standard CSSStyleDeclaration.prototype)
-// Built in: setAttribute, getAttribute, removeAttribute
-// setExpression, getExpression, removeExpression (not working)
-// toString
-
-//alert(jml('hr', {"font-weight":'bold'}).style.getPropertyValue('font-weight'))
-//document.getElementsByTagName('body')[0].style.cssText += ';color:yellow';
-// var hrEl = jml('hr', {style: 'font-weight:bold !important;background: url("Punctuat)(io\\"a\\"n\' :;-!") !important;'});
-// alert(hrEl.style.getPropertyPriority('background'))
-//alert(hrEl.getAttribute('style'))
