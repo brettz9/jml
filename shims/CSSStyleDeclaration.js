@@ -159,10 +159,13 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
                 }
             }) || '';
         };
+        /*
+        Commenting out as probably shouldn't be present here at all
         // getPropertyCSSValue from Mozilla's window.computedStyle CSSStyleDeclaration's is not cross-browser nor part of the latest CSSOM spec: http://dev.w3.org/csswg/cssom/
         CSSStyleDeclaration.prototype.getPropertyCSSValue = function (prop) {
             _notSupportedError();
         };
+        */
         // Todo: Might do by introspecting on IE's non-standard
         // document.styleSheets[idx].cssText, but one would need to match
         // it with the specific child rule (or rather, the child rule's style
