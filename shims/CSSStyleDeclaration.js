@@ -103,14 +103,23 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
             return i;
         }
 
-        CSSStyleDeclaration.prototype.getPropertyValue = function(a) {
-            return this.getAttribute(String(a));
+        CSSStyleDeclaration.prototype.getPropertyValue = function(prop) {
+            if (!arguments.length) {
+                throw new TypeError('Not enough arguments to CSSStyleDeclaration.getPropertyValue');
+            }
+            return this.getAttribute(String(prop));
         };
-        CSSStyleDeclaration.prototype.setProperty = function(a, b) {
-            return this.setAttribute(String(a), String(b));
+        CSSStyleDeclaration.prototype.setProperty = function(prop1, prop2) {
+            if (arguments.length < 2) {
+                throw new TypeError('Not enough arguments to CSSStyleDeclaration.setProperty');
+            }
+            return this.setAttribute(String(prop1), String(prop2));
         };
-        CSSStyleDeclaration.prototype.removeProperty = function(a) {
-            return this.removeAttribute(String(a));
+        CSSStyleDeclaration.prototype.removeProperty = function(prop) {
+            if (!arguments.length) {
+                throw new TypeError('Not enough arguments to CSSStyleDeclaration.removeProperty');
+            }
+            return this.removeAttribute(String(prop));
         };
         Object.defineProperty(CSSStyleDeclaration.prototype, 'length', {
             enumerable: false, // Should be true, but IE won't allow (and we only need the shim for IE? If not, repeat after putting this in a try-catch)
@@ -119,6 +128,9 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
             }
         });
         CSSStyleDeclaration.prototype.item = function(idx) {
+            if (!arguments.length) {
+                throw new TypeError('Not enough arguments to CSSStyleDeclaration.item');
+            }
             idx = idx.valueOf();
             return _execExitOnMatchWithCount(ruleMatch, this.cssText, function (i, n0) {
                 if (i === idx) {
@@ -127,6 +139,9 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
             }) || '';
         };
         CSSStyleDeclaration.prototype.getPropertyPriority = function(propToMatch) {
+            if (!arguments.length) {
+                throw new TypeError('Not enough arguments to CSSStyleDeclaration.getPropertyPriority');
+            }
             // The addition of "\\)" toward the beginning is to prevent a match within parentheses
             // This should work since it should grab ALL rules (though invalid ones might in rare cases throw things off)
             return _execExitOnMatch(ruleMatch, this.cssText, function (n0, property, important) {
@@ -136,7 +151,7 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
             }) || '';
         };
         // getPropertyCSSValue from Mozilla's window.computedStyle CSSStyleDeclaration's is not cross-browser nor part of the latest CSSOM spec: http://dev.w3.org/csswg/cssom/
-        CSSStyleDeclaration.prototype.getPropertyCSSValue = function () {
+        CSSStyleDeclaration.prototype.getPropertyCSSValue = function (prop) {
             _notSupportedError();
         };
         // Todo: any way to support?
