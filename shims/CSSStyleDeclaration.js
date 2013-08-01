@@ -30,7 +30,7 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
             throw DOMException && DOMException.create ?
                 DOMException.create(9) :
                 // If the shim-helper is not loaded (e.g., to reduce overhead and/or modifying a global's property), we'll throw our own light DOMException
-                {name: 'NotSupportedError', message: 'NotSupportedError: DOM Exception 9', code: 9};
+                {message: 'NOT_SUPPORTED_ERR: DOM Exception 9', code: 9};
         }
 
         /**
