@@ -7,7 +7,7 @@
 * The only methods (or properties) on the IE < 9 version of CSSStyleDeclaration or its prototype (at least enumerable ones) are: setAttribute, getAttribute, removeAttribute, setExpression, getExpression, removeExpression (not working), and toString.
 * Given a lack of access per these available methods, the parentRule property would not be easy to shim (see parentRule below).
 * Mozilla also has getPropertyCSSValue for its version of window.computedStyle(), but CSSStyleDeclaration's is not cross-browser nor part of the latest CSSOM spec: http://dev.w3.org/csswg/cssom/
-* Unfortunately, we cannot override cssText to fix the upper-casing of property names (as with Element.prototype.getAttribute with 'style') since it is already defined in IE8 and does not allow overriding
+* Unfortunately, we cannot override cssText to fix the upper-casing of property names since it is already defined in IE8 and does not allow overriding
 * @requires shim: Object.defineProperty
 * @requires shim: DOMException
 */
@@ -15,7 +15,15 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
     (function () {
         'use strict';
 
-        var ruleMatch = new RegExp('([\\w\\-]+): [^\\(\\); ]+(?:\\([^\\)]*\\))?( !important)?(?:; |$)', 'gi');
+        var _ruleMatch = new RegExp('([\\w\\-]+)(: [^\\(\\); ]+(?:\\([^\\)]*\\))?)( !important)?(?:(; )|($))', 'gi');
+
+        function _notSupportedError () {
+            // We'll allow it to work with a full proper shim if the (non-standard) shim-helper method has been added
+            throw DOMException && DOMException.create ?
+                DOMException.create(9) :
+                // If the shim-helper is not loaded (e.g., to reduce overhead and/or modifying a global's property), we'll throw our own light DOMException
+                {name: 'NotSupportedError', message: 'NotSupportedError: DOM Exception 9', code: 9};
+        }
 
         /**
         * @static
@@ -35,14 +43,6 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
             );
             regex.lastIndex = lastIndex;
             return regex;
-        }
-
-        function _notSupportedError () {
-            // We'll allow it to work with a full proper shim if the (non-standard) shim-helper method has been added
-            throw DOMException && DOMException.create ?
-                DOMException.create(9) :
-                // If the shim-helper is not loaded (e.g., to reduce overhead and/or modifying a global's property), we'll throw our own light DOMException
-                {name: 'NotSupportedError', message: 'NotSupportedError: DOM Exception 9', code: 9};
         }
 
         /**
@@ -125,15 +125,15 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
         Object.defineProperty(CSSStyleDeclaration.prototype, 'length', {
             enumerable: false, // Should be true, but IE won't allow (and we only need the shim for IE? If not, repeat after putting this in a try-catch)
             get: function () { // read-only
-                return _execCount(ruleMatch, this.cssText);
+                return _execCount(_ruleMatch, this.cssText);
             }
         });
-        CSSStyleDeclaration.prototype.item = function(idx) {
+        CSSStyleDeclaration.prototype.item = function(index) {
             if (!arguments.length) {
                 throw new TypeError('Not enough arguments to CSSStyleDeclaration.item');
             }
-            idx = idx.valueOf();
-            return _execExitOnMatchWithCount(ruleMatch, this.cssText, function (i, n0) {
+            var idx = index.valueOf();
+            return _execExitOnMatchWithCount(_ruleMatch, this.cssText, function (i, n0) {
                 if (i === idx) {
                     return n0;
                 }
@@ -145,7 +145,7 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
             }
             // The addition of "\\)" toward the beginning is to prevent a match within parentheses
             // This should work since it should grab ALL rules (though invalid ones might in rare cases throw things off)
-            return _execExitOnMatch(ruleMatch, this.cssText, function (n0, property, important) {
+            return _execExitOnMatch(_ruleMatch, this.cssText, function (n0, property, propertyValue, important) {
                 if (property.toLowerCase() === String(propToMatch).toLowerCase() && important) {
                     return 'important';
                 }
