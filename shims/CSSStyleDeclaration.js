@@ -4,8 +4,8 @@
 * 1. cssText
 * 2. (Any explicitly added) styles
 * 3. The following which are apparently always present even when not explicitly set: textDecorationBlink, textDecorationNone, textDecorationOverline, textDecorationLineThrough, textDecorationUnderline, posLeft, posBottom, posWidth, posTop, posHeight, posRight, accelerator
-* The only methods (or properties) on this IE < 9 version of CSSStyleDeclaration or its prototype (at least enumerable ones) are: setAttribute, getAttribute, removeAttribute, setExpression, getExpression, removeExpression (not working), and toString.
-* Given a lack of access per these available methods, the parentRule property is the one property which apparently cannot be shimmed.
+* The only methods (or properties) on the IE < 9 version of CSSStyleDeclaration or its prototype (at least enumerable ones) are: setAttribute, getAttribute, removeAttribute, setExpression, getExpression, removeExpression (not working), and toString.
+* Given a lack of access per these available methods, the parentRule property would not be easy to shim (see parentRule below).
 * Mozilla also has getPropertyCSSValue for its version of window.computedStyle(), but CSSStyleDeclaration's is not cross-browser nor part of the latest CSSOM spec: http://dev.w3.org/csswg/cssom/
 * @requires shim: Object.defineProperty
 * @requires shim: DOMException
@@ -154,7 +154,10 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
         CSSStyleDeclaration.prototype.getPropertyCSSValue = function (prop) {
             _notSupportedError();
         };
-        // Todo: any way to support?
+        // Todo: Might do by introspecting on
+        // document.styleSheets[idx].cssText, but one would need to match
+        // it with the specific child rule (or rather, the child rule's style
+        // property (CSSRuleStyleDeclaration))
         Object.defineProperty(CSSStyleDeclaration.prototype, 'parentRule', { // the containing cssRule
             enumerable: false, // Should be true, but IE won't allow (and we only need the shim for IE? If not, repeat after putting this in a try-catch)
             get: function () { // read-only
