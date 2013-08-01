@@ -1,11 +1,8 @@
 /*globals Element*/
-/**
-* @todo Fix regex to work with Firefox, etc.
-*/
 (function () {
     'use strict';
 
-    var _ruleMatch = new RegExp('([\\w\\-]+)(: [^\\(\\); ]+(?:\\([^\\)]*\\))?)( !important)?(?:(; )|($))', 'gi'),
+    var _ruleMatch = new RegExp('([\\w\\-]+)\\s*:\\s*([^\\(\\);\\s]+(?:\\([^\\)]*\\))?)\\s*(!important)?(?:\\s*;\\s*|$)', 'gi'),
         _getAttr = Element.prototype.getAttribute;
 
     /**
@@ -66,12 +63,13 @@
     * get IE's style attribute information in document order, we override getAttribute when applied to "style" so as to
     * always insert a semi-colon at the end (as in IE > 8 but not in Mozilla), as well as sort the properties into alphabetical
     * order
+    * Assumes the style attribute is using well-formed CSS!
     */
     Element.prototype.getAttribute = function (attrName) {
         var rules, getAttrResult = _getAttr.apply(this, arguments);
         if (getAttrResult && attrName === 'style') {
-            return _execIntoArray(_ruleMatch, getAttrResult, function (n0, property, propertyValue, important, endColon, endNoColon) {
-                return property.toLowerCase() + propertyValue + important + (endColon || ';');
+            return _execIntoArray(_ruleMatch, getAttrResult, function (n0, property, propertyValue, important) {
+                return property.toLowerCase() + ': ' + propertyValue + (important ? ' ' + important : '') + ';'; // Important may be undefined in Firefox instead of an empty string, so we need to default it here
             }).sort().join(' ');
         }
         return getAttrResult;
