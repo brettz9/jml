@@ -64,6 +64,10 @@
     * always insert a semi-colon at the end (as in IE > 8 but not in Mozilla), as well as sort the properties into alphabetical
     * order
     * Assumes the style attribute is using well-formed CSS!
+    * Unfortunately, we cannot override CSSStyleDeclaration.prototype.cssText nor Element.prototype.style to fix the
+    *  upper-casing of property names there since it is already defined in IE8 and IE8 does not allow overriding here.
+    *  IE does allow us to override the property on individual elements, but shimming each element (and potentially added 
+    *  element) would be highly inefficient.
     */
     Element.prototype.getAttribute = function (attrName) {
         var rules, getAttrResult = _getAttr.apply(this, arguments);

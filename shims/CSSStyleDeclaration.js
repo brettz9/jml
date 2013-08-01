@@ -7,7 +7,10 @@
 * The only methods (or properties) on the IE < 9 version of CSSStyleDeclaration or its prototype (at least enumerable ones) are: setAttribute, getAttribute, removeAttribute, setExpression, getExpression, removeExpression (not working), and toString.
 * Given a lack of access per these available methods, the parentRule property would not be easy to shim (see parentRule below).
 * Mozilla also has getPropertyCSSValue for its version of window.computedStyle(), but CSSStyleDeclaration's is not cross-browser nor part of the latest CSSOM spec: http://dev.w3.org/csswg/cssom/
-* Unfortunately, we cannot override cssText to fix the upper-casing of property names since it is already defined in IE8 and does not allow overriding
+* Unfortunately, we cannot override CSSStyleDeclaration.prototype.cssText nor Element.prototype.style to fix the
+*  upper-casing of property names there since it is already defined in IE8 and IE8 does not allow overriding here.
+*  IE does allow us to override the property on individual elements, but shimming each element (and potentially added 
+*  element) would be highly inefficient.
 * @requires shim: Object.defineProperty
 * @requires shim: DOMException
 */
