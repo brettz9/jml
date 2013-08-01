@@ -2,6 +2,8 @@
 (function () {
     'use strict';
 
+    // Note: here's a sample bad rule not handled here: font-weight:bold !important;background: url('Punctuat)(io\\'a\\'n\' :;-!') !important;
+    // IE8 also drops the "!important" in this case: background: url('abc') !important;
     var _ruleMatch = new RegExp('([\\w\\-]+)\\s*:\\s*([^\\(\\);\\s]+(?:\\([^\\)]*\\))?)\\s*(!important)?(?:\\s*;\\s*|$)', 'gi'),
         _getAttr = Element.prototype.getAttribute;
 
@@ -68,6 +70,8 @@
     *  upper-casing of property names there since it is already defined in IE8 and IE8 does not allow overriding here.
     *  IE does allow us to override the property on individual elements, but shimming each element (and potentially added 
     *  element) would be highly inefficient.
+    * @todo Use a genuine CSS parser or confirm regex is indeed covering all possible cases?
+    * @todo Handle IE8's dropping of bad rules or the likes of "background"'s !important?
     */
     Element.prototype.getAttribute = function (attrName) {
         var rules, getAttrResult = _getAttr.apply(this, arguments);

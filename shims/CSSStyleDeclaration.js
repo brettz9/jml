@@ -14,11 +14,15 @@
 * It is possible, however, to shim Element.prototype.getAttribute() to standardize at least in that context.
 * @requires shim: Object.defineProperty
 * @requires shim: DOMException
+* @todo Use a genuine CSS parser or confirm regex is indeed covering all possible cases?
+* @todo Handle IE8's dropping of bad rules or the likes of "background"'s !important?
 */
 if (!CSSStyleDeclaration.prototype.getPropertyValue) {
     (function () {
         'use strict';
 
+        // Note: here's a sample bad rule not handled here: font-weight:bold !important;background: url('Punctuat)(io\\'a\\'n\' :;-!') !important;
+        // IE8 also drops the "!important" in this case: background: url('abc') !important;
         var _ruleMatch = new RegExp('([\\w\\-]+)(: [^\\(\\); ]+(?:\\([^\\)]*\\))?)( !important)?(?:(; )|($))', 'gi');
 
         function _notSupportedError () {
@@ -108,19 +112,19 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
             return i;
         }
 
-        CSSStyleDeclaration.prototype.getPropertyValue = function(prop) {
+        CSSStyleDeclaration.prototype.getPropertyValue = function (prop) {
             if (!arguments.length) {
                 throw new TypeError('Not enough arguments to CSSStyleDeclaration.getPropertyValue');
             }
             return this.getAttribute(String(prop));
         };
-        CSSStyleDeclaration.prototype.setProperty = function(prop1, prop2) {
+        CSSStyleDeclaration.prototype.setProperty = function (prop1, prop2) {
             if (arguments.length < 2) {
                 throw new TypeError('Not enough arguments to CSSStyleDeclaration.setProperty');
             }
             return this.setAttribute(String(prop1), String(prop2));
         };
-        CSSStyleDeclaration.prototype.removeProperty = function(prop) {
+        CSSStyleDeclaration.prototype.removeProperty = function (prop) {
             if (!arguments.length) {
                 throw new TypeError('Not enough arguments to CSSStyleDeclaration.removeProperty');
             }
@@ -132,7 +136,7 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
                 return _execCount(_ruleMatch, this.cssText);
             }
         });
-        CSSStyleDeclaration.prototype.item = function(index) {
+        CSSStyleDeclaration.prototype.item = function (index) {
             if (!arguments.length) {
                 throw new TypeError('Not enough arguments to CSSStyleDeclaration.item');
             }
@@ -143,7 +147,7 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
                 }
             }) || '';
         };
-        CSSStyleDeclaration.prototype.getPropertyPriority = function(propToMatch) {
+        CSSStyleDeclaration.prototype.getPropertyPriority = function (propToMatch) {
             if (!arguments.length) {
                 throw new TypeError('Not enough arguments to CSSStyleDeclaration.getPropertyPriority');
             }
