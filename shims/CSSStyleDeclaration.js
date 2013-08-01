@@ -11,7 +11,7 @@
 *  upper-casing of property names there since it is already defined in IE8 and IE8 does not allow overriding here.
 *  IE does allow us to override the property on individual elements, but shimming each element (and potentially added 
 *  element) would be highly inefficient.
-* It is possible, however, to shim Element.prototype.getAttribute() to standardize at least in that context.
+* It is possible, however, to shim Element.prototype.getAttribute() to harmonize at least in that context (and the latest DOM spec does not appear to require or disallow any particular serialization of the attribute value).
 * @requires shim: Object.defineProperty
 * @requires shim: DOMException
 * @todo Use a genuine CSS parser or confirm regex is indeed covering all possible cases?
