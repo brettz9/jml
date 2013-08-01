@@ -25,7 +25,7 @@ Todos:
 0. Settle on whether need to use null as last argument to return array (or fragment) or other way to allow appending? Options object at end instead to indicate whether returning array, fragment, first element, etc.? Use JsonML approach of empty string?
 0. Allow building of generic XML (pass configuration object)
 0. Allow building content internally as a string (though allowing DOM methods, etc.?)
-
+0. Redo browser testing (including IE7 if and where possible)
 */
 
     'use strict';
