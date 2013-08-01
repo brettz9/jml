@@ -18,8 +18,6 @@ var $ = function (sel) {
 
 // BEGIN TESTS
 
-//alert(new XMLSerializer().serializeToString(document.createElement('div')))
-
 var br = document.createElement('br');
 br.className = 'a>bc';
 
