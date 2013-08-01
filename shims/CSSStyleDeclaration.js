@@ -154,7 +154,7 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
         CSSStyleDeclaration.prototype.getPropertyCSSValue = function (prop) {
             _notSupportedError();
         };
-        // Todo: Might do by introspecting on
+        // Todo: Might do by introspecting on IE's non-standard
         // document.styleSheets[idx].cssText, but one would need to match
         // it with the specific child rule (or rather, the child rule's style
         // property (CSSRuleStyleDeclaration))
