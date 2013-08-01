@@ -68,27 +68,30 @@ Todos:
             parentName = _getHTMLNodeName(parent),
             childName = _getHTMLNodeName(child);
 
-        // Todo: confirm this works
-        if (parentName === 'select' && childName === 'option') {
-            try {
-                parent.add(child, null);
+        if (document.createStyleSheet) {
+            if (parentName === 'script') {
+                parent.text = child.nodeValue;
+                return;
             }
-            catch (err) {
-                parent.add(child); // IE
+            if (parentName === 'style') {
+                parent.cssText = child.nodeValue; // This will not apply it--just make it available within the DOM cotents
+                return;
             }
         }
-        else {
-            if (document.createStyleSheet) {
-                if (parentName === 'script') {
-                    parent.text = child.nodeValue;
-                    return;
+        try {
+            parent.appendChild(child); // IE9 is now ok with this
+        }
+        catch (e) {
+            if (parentName === 'select' && childName === 'option') {
+                try { // Since this is now DOM Level 4 standard behavior (and what IE7+ can handle), we try it first
+                    parent.add(child);
                 }
-                if (parentName === 'style') {
-                    parent.cssText = child.nodeValue; // This will not apply it--just make it available within the DOM cotents
-                    return;
+                catch (err) { // DOM Level 2 did require a second argument, so we try it too just in case the user is using an older version of Firefox, etc.
+                    parent.add(child, null); // IE7 has a problem with this, but IE8+ is ok
                 }
+                return;
             }
-            parent.appendChild(child);
+            throw e;
         }
     }
 
