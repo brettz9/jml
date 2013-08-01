@@ -152,6 +152,7 @@ var XMLSerializer;
 
                                         try {
 
+                                        // An alternative approach would be to call node.getAttribute('style') and parse it ourselves, thereby avoiding a need for the CSSStyleDeclaration shim
                                         string += ' style="' + Array.from(node.style).sort().map(function (style) {
                                             // This approach not supported in IE (without a CSSStyleDeclaration shim); we can't get IE
                                             //   to shim the style object to auto-return lower-cased values, however, since it is already defined
@@ -160,7 +161,11 @@ var XMLSerializer;
                                             return style.toLowerCase() + ': ' + node.style.getPropertyValue(style) + (priority ? ' !' + priority : '');
                                         }).join('; ') + '"';
 
-                                        }catch(e) {alert(''+node.style);throw e;}
+                                        }
+                                        catch(e) {
+                                            // alert(''+node.style);
+                                            throw e;
+                                        }
                                     }
                                     else {
                                         string += ' ' + tagAttributes[i].nodeName + // .toLowerCase() +
