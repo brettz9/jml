@@ -134,6 +134,10 @@ var XMLSerializer;
                         for (i = 0; i < tagAttributes.length; i++) {
                             if (
                                 // IE includes attributes like type=text even if not explicitly added as such
+                                // Todo: Maybe we should ALWAYS apply instead of never apply in the case of type=text?
+                                // Todo: Does XMLSerializer serialize properties in any browsers as well (e.g., if after setting an input.value); it does not in Firefox, but I think this could be very useful (especially since we are
+                                // changing native behavior in Firefox anyways in order to sort attributes in a consistent manner
+                                // with IE
                                 notIEInsertedAttributes(tagAttributes[i], node, [
                                     ['type', 'text'], 'colSpan', 'rowSpan', 'cssText', 'shape'
                                 ])
