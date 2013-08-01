@@ -25,8 +25,8 @@ Todos:
 0. Settle on whether need to use null as last argument to return array (or fragment) or other way to allow appending? Options object at end instead to indicate whether returning array, fragment, first element, etc.? Use JsonML approach of empty string?
 0. Allow building of generic XML (pass configuration object)
 0. Allow building content internally as a string (though allowing DOM methods, etc.?)
-0. Redo browser testing (including IE7 if and where possible)
 0. Support JsonML empty string element name to represent fragments?
+0. Redo browser testing of jml (including ensuring IE7 can work even if test framework can't work)
 */
 
     'use strict';
@@ -147,6 +147,9 @@ Todos:
     /**
      * Creates an XHTML or HTML element (XHTML is preferred, but only in browsers that support);
      * Any element after element can be omitted, and any subsequent type or types added afterwards
+     * @requires shim: Array.isArray
+     * @requires shim: Array.prototype.reduce For returning a document fragment
+     * @requires shim: Element.prototype.dataset For dataset functionality (Will not work in IE <= 7)
      * @param {String} el The element to create (by lower-case name)
      * @param {Object} [atts] Attributes to add with the key as the attribute name and value as the
      *                                               attribute value; important for IE where the input element's type cannot
@@ -184,6 +187,7 @@ Todos:
                 case 'null': // null always indicates a place-holder (only needed for last argument if want array returned)
                     if (i === argc - 1) {
                         _applyAnyStylesheet(nodes[0]); // We have to execute any stylesheets even if not appending or otherwise IE will never apply them
+                        // Todo: Fix to allow application of stylesheets of style tags within fragments?
                         return nodes.length <= 1 ? nodes[0] : nodes.reduce(function (frag, node) {
                             frag.appendChild(node);
                             return frag;
@@ -374,6 +378,7 @@ Todos:
                         for (k = 0, elsl = nodes.length; k < elsl; k++) {
                             _appendNode(arg, nodes[k]);
                         }
+                        // Todo: Apply stylesheets if any style tags were added elsewhere besides the first element?
                         _applyAnyStylesheet(nodes[0]); // We have to execute any stylesheets even if not appending or otherwise IE will never apply them
                     }
                     else {
