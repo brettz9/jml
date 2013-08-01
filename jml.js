@@ -348,7 +348,7 @@ Todos:
                                     }
                                     if (p === 'style') { // setAttribute will work, but erases any existing styles
                                         if (elem.style.cssText !== undefined) {
-                                            elem.style.cssText = attVal;
+                                            elem.style.cssText = attVal; // If we don't need the following condition, we could change to += to avoid overwriting existing style values
                                         }
                                         else {
                                             elem.style = attVal;

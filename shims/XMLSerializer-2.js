@@ -49,10 +49,10 @@ var XMLSerializer;
                 invalidStateError = function () { // These are probably only necessary if working with text/html
                     if (prohibitHTMLOnly) {
                         // INVALID_STATE_ERR per section 9.3 XHTML 5: http://www.w3.org/TR/html5/the-xhtml-syntax.html
-                        var DOMException = function DOMException () {}, // Since we can't instantiate without this (at least in Mozilla), this mimicks at least (good idea?)
-                            e = new DOMException();
-                        e.code = 11;
-                        throw e;
+                        throw DOMException && DOMException.create ?
+                            DOMException.create(11) :
+                            // If the shim-helper is not loaded (e.g., to reduce overhead and/or modifying a global's property), we'll throw our own light DOMException
+                            {message: 'INVALID_STATE_ERR: DOM Exception 11', code: 11};
                     }
                 },
                 addExternalID = function (node, all) {
@@ -151,8 +151,8 @@ var XMLSerializer;
                                         */
 
                                         try {
-
-                                        // An alternative approach would be to call node.getAttribute('style') and parse it ourselves, thereby avoiding a need for the CSSStyleDeclaration shim
+                                        /*
+                                        // This works but we instead choose the alternative approach which is to call a streamlining shim of node.getAttribute (for 'style') and thereby avoid a need for the CSSStyleDeclaration shimming
                                         string += ' style="' + Array.from(node.style).sort().map(function (style) {
                                             // This approach not supported in IE (without a CSSStyleDeclaration shim); we can't get IE
                                             //   to shim the style object to auto-return lower-cased values, however, since it is already defined
@@ -160,7 +160,8 @@ var XMLSerializer;
                                             var priority = node.style.getPropertyPriority(style);
                                             return style.toLowerCase() + ': ' + node.style.getPropertyValue(style) + (priority ? ' !' + priority : '');
                                         }).join('; ') + '"';
-
+                                        */
+                                            string += ' style="' + node.getAttribute('style') + '"';
                                         }
                                         catch(e) {
                                             // alert(''+node.style);

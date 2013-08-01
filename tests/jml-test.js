@@ -6,6 +6,7 @@ Todos:
 0. When CDATA XML-check added, add check for CDATA section in XML
 0. Fix bug with IE 10 (but not IE 8) when testing $on events (race condition)
 */
+// Note: we always end styles in the tests with a semi-colon, as our standardizing Element.prototype.getAttribute() shim used internally will always add a semi-colon, but even modern browsers do not do this (nor are they required to do so) without the harmonizing shim (but to harmonize, such an approach is necessary since IE8 always drops the semi-colon with no apparent way to recover whether it was written with or without it); even though our shim could handle either case, by adding a semicolon at the end of even the last rule, we are at least ensuring the tests will remain valid in modern browsers regardless of whether the shim is present or not; we really should do the same in alphabetizing our properties as well, since our shim handles that (since IE has its own order not the same as document order or alphabetical), but modern browsers (at least Firefox) follow document order.
 
 (function () {
 'use strict';
@@ -111,7 +112,7 @@ var div = jml(
 );
 assert.matchesXMLString(
     div,
-    '<div xmlns="http://www.w3.org/1999/xhtml" style="left: -1000px; position: absolute !important"><div id="DOMChildrenMustBeInArray" style="display: none">test1</div></div>'
+    '<div xmlns="http://www.w3.org/1999/xhtml" style="left: -1000px; position: absolute !important;"><div id="DOMChildrenMustBeInArray" style="display: none;">test1</div></div>'
     // '<div xmlns="http://www.w3.org/1999/xhtml" style="position: absolute; left: -1000px;"><div id="DOMChildrenMustBeInArray" style="display:none;">test1</div></div><div id="anotherElementToAddToParent" style="display:none;">test2</div><div id="yetAnotherSiblingToAddToParent" style="display:none;">test3</div>'
 );
 //throw '';
@@ -228,12 +229,12 @@ assert.matchesXMLString(
     jml("ul", [
         [
             "li",
-                { "style" : "color:red" },
+                { "style" : "color:red;" },
                 ["First Item"],
             "li",
                 {
                     "title" : "Some hover text.",
-                    "style" : "color:green"
+                    "style" : "color:green;"
                 },
                 ["Second Item"],
             "li",
@@ -241,7 +242,7 @@ assert.matchesXMLString(
                     ["span",
                         {
                             "class" : "Remove-Me",
-                            "style" : "font-weight:bold"
+                            "style" : "font-weight:bold;"
                         },
                         ["Not Filtered"]
                     ],
@@ -259,7 +260,7 @@ assert.matchesXMLString(
             null
         ]
     ], document.body),
-    '<ul xmlns="http://www.w3.org/1999/xhtml"><li style="color: red">First Item</li><li style="color: green" title="Some hover text.">Second Item</li><li><span class="Remove-Me" style="font-weight: bold">Not Filtered</span> Item</li><li><a href="#NewWindow">Special Link</a></li></ul>'
+    '<ul xmlns="http://www.w3.org/1999/xhtml"><li style="color: red;">First Item</li><li style="color: green;" title="Some hover text.">Second Item</li><li><span class="Remove-Me" style="font-weight: bold;">Not Filtered</span> Item</li><li><a href="#NewWindow">Special Link</a></li></ul>'
 );
 
 assert.matchesXMLString(

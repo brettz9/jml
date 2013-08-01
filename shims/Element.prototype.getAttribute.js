@@ -4,7 +4,7 @@
 
     // Note: here's a sample bad rule not handled here: font-weight:bold !important;background: url('Punctuat)(io\\'a\\'n\' :;-!') !important;
     // IE8 also drops the "!important" in this case: background: url('abc') !important;
-    var _ruleMatch = new RegExp('([\\w\\-]+)\\s*:\\s*([^\\(\\);\\s]+(?:\\([^\\)]*\\))?)\\s*(!important)?(?:\\s*;\\s*|$)', 'gi'),
+    var _ruleMatch = new RegExp('([\\w\\-]+)\\s*:\\s*([^\\(\\);\\s]+(?:\\([^\\)]*\\))?)\\s*(!\\s*important)?(?:\\s*;\\s*|$)', 'gi'),
         _getAttr = Element.prototype.getAttribute;
 
     /**
@@ -77,7 +77,7 @@
         var rules, getAttrResult = _getAttr.apply(this, arguments);
         if (getAttrResult && attrName === 'style') {
             return _execIntoArray(_ruleMatch, getAttrResult, function (n0, property, propertyValue, important) {
-                return property.toLowerCase() + ': ' + propertyValue + (important ? ' ' + important : '') + ';'; // Important may be undefined in Firefox instead of an empty string, so we need to default it here
+                return property.toLowerCase() + ': ' + propertyValue + (important ? ' !important' : '') + ';'; // Important may be undefined in Firefox instead of an empty string, so we need to default it here (and Firefox oddly adds a space after the exclamation mark when the element's style.cssText is used to set the attribute).
             }).sort().join(' ');
         }
         return getAttrResult;

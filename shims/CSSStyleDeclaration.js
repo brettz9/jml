@@ -23,7 +23,7 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
 
         // Note: here's a sample bad rule not handled here: font-weight:bold !important;background: url('Punctuat)(io\\'a\\'n\' :;-!') !important;
         // IE8 also drops the "!important" in this case: background: url('abc') !important;
-        var _ruleMatch = new RegExp('([\\w\\-]+)(: [^\\(\\); ]+(?:\\([^\\)]*\\))?)( !important)?(?:(; )|($))', 'gi');
+        var _ruleMatch = new RegExp('([\\w\\-]+)\\s*:\\s*([^\\(\\);\\s]+(?:\\([^\\)]*\\))?)\\s*(!\\s*important)?(?:\\s*;\\s*|$)', 'gi');
 
         function _notSupportedError () {
             // We'll allow it to work with a full proper shim if the (non-standard) shim-helper method has been added
