@@ -37,10 +37,11 @@ if (!CSSStyleDeclaration.prototype.getPropertyValue) {
         * @static
         * @param {RegExp} regex The regular expression to clone and optionally onto which to copy new values
         * @param {String} [newFlags] A string combining any of 'g', 'i', 'm', or 'y'. Polymorphism would allow newFlags to be an array, but would need a shim
+        * @param {Number} [lastIndex] A different lastIndex to apply from the source RegExp. Defaults to the source's RegExp's lastIndex
         * @returns {RegExp}
         */
-        function _mixinRegex (regex, newFlags) {
-            var lastIndex = regex.lastIndex; // We'll let the user reset this afterwards if they prefer
+        function _mixinRegex (regex, newFlags, lastIndex) {
+            lastIndex = lastIndex === undefined ? regex.lastIndex : lastIndex;
             newFlags = newFlags || '';
             regex = new RegExp(
                 regex.source,
