@@ -91,7 +91,8 @@
         }
         /* dataset shim unfinished
         if (attrName.match(/^data-/i) && this.dataset) { // In case a dataset shims exists and was used to set the dataset earlier but it has not yet been able to modify the attributes as it can only do so when done through the dataset property
-            return this.dataset[attrName.slice(5).replace(/-./g, _toUpperCase)];
+            // Todo: Validate first (e.g., XML name without uppercase letters)
+            return this.dataset[attrName.slice(5).replace(/-[a-z]?/g, _toUpperCase)];
         }
         */
         return getAttrResult;
