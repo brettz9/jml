@@ -129,6 +129,7 @@ var XMLSerializer;
                                         '="' + entify(namespaces[prefix || '$']) + '"';
                         }
                         //*/
+                        // Todo: optimize this by joining the for loops together but inserting into an array to sort
                         for (i = 0; i < tagAttributes.length; i++) {
                             if (tagAttributes[i].nodeName.match(/^xmlns:\w*$/)) {
                                 string += ' ' + tagAttributes[i].nodeName + // .toLowerCase() +
@@ -169,7 +170,12 @@ var XMLSerializer;
                                             return style.toLowerCase() + ': ' + node.style.getPropertyValue(style) + (priority ? ' !' + priority : '');
                                         }).join('; ') + '"';
                                         */
-                                            string += ' style="' + node.getAttribute('style') + '"';
+//                                        tagAttributes[i].nodeValue = 'color:pink';
+                                            string += ' style="' +
+                                                // Either of these works now that Attr.prototype has a style-harmonizing nodeValue getter as well as a getAttribute harmonizer
+                                                // node.getAttribute('style') +
+                                                tagAttributes[i].nodeValue +
+                                                '"';
                                         }
                                         catch(e) {
                                             // alert(''+node.style);
