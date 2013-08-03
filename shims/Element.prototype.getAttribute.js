@@ -110,19 +110,17 @@
     });
     */
 
-    /*
-    // We override for the sake of ensuring we are getting dataset
+    // We override for the sake of ensuring we are getting the proper standardized "style" property object
     Object.defineProperty(Attr.prototype, 'nodeValue', {
         enumerable: false,
         get: function () {
             // Get the overridden getAttribute() result
             return this.ownerElement.getAttribute(this.name);
-        },
+        }/*,
         set: function (val) {
             // Get the overridden setAttribute() result
             return this.ownerElement.setAttribute(this.name, val);
-        }
+        }*/
     });
-    */
 
 }());
