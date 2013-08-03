@@ -1,4 +1,4 @@
-/*globals Element*/
+/*globals Element, Attr*/
 (function () {
     'use strict';
 
@@ -7,6 +7,9 @@
     var _ruleMatch = new RegExp('([\\w\\-]+)\\s*:\\s*([^\\(\\);\\s]+(?:\\([^\\)]*\\))?)\\s*(!\\s*important)?(?:\\s*;\\s*|$)', 'gi'),
         _getAttr = Element.prototype.getAttribute;
 
+    function _toUpperCase (n0) {
+        return n0.charAt(1).toUpperCase();
+    }
     /**
     * @static
     * @param {RegExp} regex The regular expression to clone and optionally onto which to copy new values
@@ -57,6 +60,7 @@
         }
         return a;
     }
+
     /**
     * IE does allow us to override this DOM method, so we standardize behavior to lower-case the properties.
     * For some reason, as of IE 9 (including 10), a semi-colon will be inserted at the end of the rules even if not present,
@@ -68,20 +72,56 @@
     * order
     * Assumes the style attribute is using well-formed CSS!
     * Unfortunately, we cannot override CSSStyleDeclaration.prototype.cssText nor Element.prototype.style to fix the
-    *  upper-casing of property names there since it is already defined in IE8 and IE8 does not allow overriding here.
-    *  IE does allow us to override the property on individual elements, but shimming each element (and potentially added 
-    *  element) would be highly inefficient.
+    *  upper-casing of property names there since it is already defined on the element itself in IE8.
+    *  We could override the property on individual elements, but shimming each element (and potentially added
+    *  element) would be highly inefficient. Another approach would be to wrap the elements when obtained through other
+    *  APIs, e.g., with document methods such as getElementById(), within a shim like https://gist.github.com/brettz9/6093483
     * @todo Use a genuine CSS parser or confirm regex is indeed covering all possible cases?
     * @todo Handle IE8's dropping of bad rules or the likes of "background"'s !important?
     */
     Element.prototype.getAttribute = function (attrName) {
         var rules, getAttrResult = _getAttr.apply(this, arguments);
-        if (getAttrResult && attrName === 'style') {
+        if (!getAttrResult) {
+            return getAttrResult;
+        }
+        if (attrName === 'style') {
             return _execIntoArray(_ruleMatch, getAttrResult, function (n0, property, propertyValue, important) {
                 return property.toLowerCase() + ': ' + propertyValue + (important ? ' !important' : '') + ';'; // Important may be undefined in Firefox instead of an empty string, so we need to default it here (and Firefox oddly adds a space after the exclamation mark when the element's style.cssText is used to set the attribute).
             }).sort().join(' ');
         }
+        /* dataset shim unfinished
+        if (attrName.match(/^data-/i) && this.dataset) { // In case a dataset shims exists and was used to set the dataset earlier but it has not yet been able to modify the attributes as it can only do so when done through the dataset property
+            return this.dataset[attrName.slice(5).replace(/-./g, _toUpperCase)];
+        }
+        */
         return getAttrResult;
     };
+
+    // IE lets us override these (at least getters?)--so to be safe, we have to do it here too...
+    // Todo: There may still be some obscure (and probably deprecated) ways to get or set attribute info that we have not covered below
+    /*
+    Object.defineProperty(Element.prototype, 'attributes', {
+        enumerable: false,
+        get: function () { // We need to check whether to add any missing dataset attributes
+            // We need a way to work with the original NamedNodeMap. NamedNodeMap() appears to work with an argument, but not sure what to supply; adding attribute nodes did not work; there is no original Element.prototype.attributes to store, so the best we might do is parse outerHTML for attributes! (Or, as per above with the Element.style, we could wrap elements whenever exposed to us from an API, e.g., document.getElementById(), by shimming document, as in
+            https://gist.github.com/brettz9/6093483 )
+        }
+    });
+    */
+
+    /*
+    // We override for the sake of ensuring we are getting dataset
+    Object.defineProperty(Attr.prototype, 'nodeValue', {
+        enumerable: false,
+        get: function () {
+            // Get the overridden getAttribute() result
+            return this.ownerElement.getAttribute(this.name);
+        },
+        set: function (val) {
+            // Get the overridden setAttribute() result
+            return this.ownerElement.setAttribute(this.name, val);
+        }
+    });
+    */
 
 }());
