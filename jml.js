@@ -22,7 +22,7 @@ JsonML element-specific:
 Todos:
 0. Note to self: Integrate research from other jml notes
 0. Allow array as single first argument
-0. Settle on whether need to use null as last argument to return array (or fragment) or other way to allow appending? Options object at end instead to indicate whether returning array, fragment, first element, etc.? Use JsonML approach of empty string?
+0. Settle on whether need to use null as last argument to return array (or fragment) or other way to allow appending? Options object at end instead to indicate whether returning array, fragment, first element, etc.?
 0. Allow building of generic XML (pass configuration object)
 0. Allow building content internally as a string (though allowing DOM methods, etc.?)
 0. Support JsonML empty string element name to represent fragments?
@@ -244,6 +244,9 @@ Todos:
                             catch (e) {
                                 nodes[nodes.length] = document.createTextNode(argv[i]); // i already incremented
                             }
+                            break;
+                        case '':
+                            nodes[nodes.length] = document.createDocumentFragment();
                             break;
                         default: // An element
                             elStr = arg;
